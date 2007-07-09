@@ -58,6 +58,86 @@ In contrast with the previous protocol, the server no longer lists all the URLs 
 
 = 3. Protocol Specification =
 
+The client-server exchange uses a simple pull model: the client connects regularly to the server and pulls some updates. The data exchange can be summarized as follows:
+
+    * The client sends an HTTP POST request to the server and specifies which lists it wants to download. It indicates which chunks it already has. It specifies the desired download size.
+    * The server replies with an HTTP error code and an HTTP response. If there is any data, the response contains the chunks for the various requested lists.
+
+
+Besides the data exchange, the server provides a way for the client to discover which lists are available.
+
+== 3.1 R-BNF ==
+
+This document uses a R-BNF notation, which is a mix between Extended BNF and PCRE-style regular expressions:
+
+    * Rules are in the form: name = definition. Rule names referenced as-is in the definition. Angle brackets may be used to help facilitate discerning the use of rule names.
+    * Literals are surrounded by quotation marks: "literal".
+    * Sequences: (rule1 rule2) or simply rule1 rule2.
+    * Alternatives groups: (rule1 | rule2).
+    * Optional groups: {{{[}}}rule{{{]}}}.
+    * Repetition: rule{{{*}}} means 0 or more of this rule or this group.
+    * Repetition: rule+ means 1 or more of this rule or this group.
+
+
+The following basic rules that describe the US-ASCII character set are also used as defined in RFC 2616:
+
+    * OCTET = <any 8-bit sequence of data>
+    * CHAR = <any US-ASCII character (octets 0 - 127)>
+    * UPALPHA = <any US-ASCII uppercase letter "A".."Z">
+    * LOALPHA = <any US-ASCII lowercase letter "a".."z">
+    * ALPHA = UPALPHA | LOALPHA
+    * DIGIT = <any US-ASCII digit "0".."9">
+    * CTL = <any US-ASCII control character (octets 0 - 31) and DEL (127)>
+    * CR = <US-ASCII CR, carriage return (13)>
+    * LF = <US-ASCII LF, line-feed (10)>
+    * SP = <US-ASCII SP, space (32)>
+    * TAB = <US-ASCII HT, horizontal-tab (9)>
+    * <"> = <US-ASCII double-quote mark (34)>
+    * LWS = Linear White Space <one or more of SP or TAB>
+    * EOF = End of File / End of Stream
+
+== 3.2 HTTP Request for List ==
+ 
+
+
+This is used by clients to discover the available list types.
+
+=== 3.2.1 Request's URL ===
+
+The client performs a request by sending an HTTP POST request to the URI:
+http://sb.google.com/safebrowsing/list?client=CLIENTID&appver=CLIENTVER&pver=PVER&wrkey=MACKEY
+
+Required CGI parameters:
+
+    * The *client* parameter indicates the type of client, e.g. "myapplication".
+    * The *appver* parameter indicates the version of the client, e.g. "1.5.2".
+    * The *pver* parameter indicates the protocol version that the client supports. Currently this must be "2.0". The format is "major.minor". If we update the protocol, we will make sure that minor revisions are always compatible; however major revision will be incompatible and the server MAY NOT be able to cope with an older protocol.
+
+
+Optional CGI parameters:
+
+    * The *wrkey* parameter is used by clients who want a MAC for the response. See the *MAC* section below for more details.
+
+
+Formal R-BNF description:
+CLIENTID  = (LOALPHA | "-")+
+CLIENTVER = DIGIT ["." DIGIT]
+PVER      = DIGIT "." DIGIT
+MACKEY    = (ALPHA | DIGIT)+
+
+Example:
+    http://sb.google.com/safebrowsing/list?client=myapplication&appver=1.5.2&pver=2.0
+
+
+Client Behavior:
+
+    * The client MUST specify the *client*, *appver* and *pver* CGI parameters.
+
+
+
+
+
+
 
 
 
