@@ -1,0 +1,63 @@
+#summary Client specification for the Google Safe Browsing v2 protocol
+
+Status: DRAFT as of 2007/06/28
+
+Copyright 2007 Google Inc.  All Rights Reserved.
+
+Authors: Garrett Casto, Raphaël Moll, and Marria Nazif
+
+Notes: The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119. 
+
+= 1. Background =
+
+Google provides data for the anti-phishing feature implemented in Firefox 2 and Google Desktop. These clients get their blacklist and whitelist data using an "update protocol".  A new protocol, version 2, is designed to address some shortcomings of the previous protocol and is described in this specification.
+
+_Note_: This document assumes the reader is familiar with the anti-phishing service. For an overview of the phishing protection in Firefox, see the [http://wiki.mozilla.org/Phishing_Protection:_Design_Documentation design doc on Mozilla.org]. However readers need not be familiar with the details of the version 1 of the protocol to understand the second version.
+
+Version 1 of the update protocol is inefficient and not scalable. Caveats of the version 1 of the protocol include:
+
+    * It does not support partial list updates unless a client has a recent version of the list already fully downloaded. A new client must download the entire list of phishing entries at once or else it will never get any data. As a result, some clients using slow connections take a very long time to download the full list, the request times out, and they never download anything.
+
+    * It sends phishing data to the client in oldest to newest order, which is inefficient for phishing sites since they have a very short lifetime.
+    * Expiring old entries requires listing them in updates, which actually consumes bandwidth.
+
+
+= 2. Overview =
+
+Version 2 of the update protocol is designed with the following characteristics:
+
+    * Each list type has one canonical list divided into chunks, rather than incrementing list versions.  Each chunk is assigned a unique identifier and describes entries to be added or removed from the blacklist.
+    * Clients can recommend a download size that they want to see, although their request is not guaranteed by the server.
+    * Clients inherently perform _partial_ updates each time they connect, and the server will send the most valuable data to client first (for example, perhaps the most recent data).
+    * The chunk structure is determined by the list type.  For example, in some cases chunk entries are plain text expressions and in some cases they are hash values.
+
+
+As with the previous protocol, the new protocol supports many different blacklists or whitelists. List names are in the form "provider-type-format", e.g. "goog-phish-md5".  Each item in a list will represent an expression that will match a malicious url, but the exact format depends on the list type and how the content is used is application-specific.  Note that the rest of the specification will generally talk about lists in terms of blacklists but the protocol itself is agnostic to the content of the list.  (See the *List Contents* section below for details.)
+
+The lists are divided into chunks, the smallest unit of data that will be sent to the client. This allows for supporting partial updates to all users, including new users, and allows for more flexibility in choosing which data to send the client.  The actual chunk size is determined by the server.
+
+There are two kind of chunks:
+
+    * "_add_" chunks contain new entries for the list.
+    * "_sub_" chunks contains entries that need to be removed from the client's list.
+
+
+Chunks are assigned a number, which is a sequence number for chunks of the same type.
+For example for a given list, there will be:
+
+    * "_Add_" chunk #1, "_add_" chunk #2,..., "_add_" chunk #N.
+    * "_Sub_" chunk #1, "_sub_" chunk #2,..., "_sub_" chunk #M.
+    * The total number of "_add_" and "_sub_" chunks will generally be different.
+    * There is no chunk number 0. Chunk numbers start with 1.
+    * Chunk numbers within the same chunk type grow increasingly, without gaps.
+
+
+For a blacklist, "_add_" chunks contain the new URLs regular expressions or hashes to add to the blacklist and "sub" chunks contains the false positives that need to be removed from the client's blacklist.
+
+In contrast with the previous protocol, the server no longer lists all the URLs that need to be expired. To save bandwidth, the server indicates which chunks need to be deleted by specifying a previously-seen "_add_" chunk number.
+
+= 3. Protocol Specification =
+
+
+
+
