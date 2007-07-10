@@ -459,7 +459,7 @@ wrappedkey:24:MTqdJvrixHRGAyfebvaQWYda
 
 == 4.3. Requesting the MAC ==
 
- The client must include the wrapped key in the request if it wants a MAC. For example, the request will look like this:
+The client must include the wrapped key in the request if it wants a MAC. For example, the request will look like this:
 {{{
 http://sb.google.com/safebrowsing/download?client=foo&appver=1.5&pver=2.0&wrkey=123
 }}}
@@ -588,3 +588,4 @@ f.g/
     * [http://www.ietf.org/rfc/rfc2119.txt RFC 2119] -- Keywords for use in RFCs.
     * [http://www.ietf.org/rfc/rfc2616.txt RFC 2616] -- Hypertext transfer Protocol HTTP/1.1.
     * [http://wiki.mozilla.org/Phishing_Protection Mozilla/Firefox Phishing Protection].
+
