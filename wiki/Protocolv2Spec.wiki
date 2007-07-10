@@ -393,11 +393,12 @@ The contents of each chunk depends on the list type that the chunk belongs to. C
 Both the "exp" and "md5" list types rely on suffix/prefix expressions. Each of the suffix/prefix expressions consists of a host suffix (or full host) and a path prefix (or full path).  Note that the path prefix consists of full path components.  If the expression contains the full path, there may optionally be query parameters appended to the path.
 
 Examples:
+{{{
 Regular expression:                  http\:\/\/.*\.a\.b\/mypath\/.*
 Suffix/prefix expression:            a.b/mypath/
 Regular expression:            http\:\/\/.*.c\.d\/full\/path\.html?myparam=a
 Suffix/prefix regular expression:  c.d/full/path.html?myparam=a
-
+}}}
 
 For the "exp" list format, the chunk will be compressed using zlib. After decompression, the chunk will contain one plaintext suffix/prefix expression per line. 
 
