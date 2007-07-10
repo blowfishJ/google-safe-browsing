@@ -285,4 +285,99 @@ Client Behavior:
     * The client MUST request at least one list.
     * The last line of the body MUST have a trailing LF character.
 
+== 3.5. HTTP Response for Data ==
+
+The server replies using the error code and response body of the HTTP response. No specific HTTP headers is set by the server -- some HTTP headers MAY be present but are not authoritative.
+
+=== 3.5.1. Response Code ===
+
+The server generates the following HTTP error codes:
+
+    * 200: OK -- Data is available in the HTTP response body.
+    * 304: Not Modified -- The client is up-to-date.
+    * 400: Bad Request -- The HTTP request was not correctly formed. The client did not provide all required CGI parameters or the body did not contain any meaningful entries.
+    * 403: Forbidden -- The client id is invalid.
+    * 503: Service Unavailable -- The server cannot handle the request. Clients MUST follow the backoff behavior specified in the *Update Frequency* section.
+    * 505: HTTP Version Not Supported -- The server CANNOT handle the requested protocol major version.
+
+=== 3.5.2. Response Body ===
+
+The response body will not be present for codes in 4xx and 5xx.
+
+When present, the response body contains the following information:
+
+    * The next polling interval to use, i.e. the number of seconds before the client should contact the server again.
+    * For each list, it's name followed by all chunk data.
+
+
+The body contains both the chunk data (binary blobs) and the metadata describing the chunks. The metadata is line oriented.
+Formal R-BNF description of the response body:
+{{{
+BODY      = NEXT LF [REKEY LF] (LIST LF)+ EOF
+REKEY     = "k: pleaserekey"
+NEXT      = "n:" DIGIT+                               # Minimum delay before polling again in seconds
+LIST      = "i:" LISTNAME [MAC] (LF LISTDATA)+
+MAC       = "," (LOALPHA | DIGIT)+
+LISTNAME = (LOALPHA | DIGIT)+ "-" LOALPHA+ "-" (LOALPHA | DIGIT)+
+LISTDATA  = ADD-HEAD | SUB-HEAD | ADDDEL-HEAD | SUBDEL-HEAD
+ADD-HEAD  = "a:" CHUNKNUM ":" CHUNKLEN LF CHUNKDATA   # Length in bytes in decimal
+SUB-HEAD  = "s:" CHUNKNUM ":" CHUNKLEN LF CHUNKDATA   # Length in bytes in decimal
+CHUNKNUM  = 1*DIGIT                                   # Sequence number of the chunk
+CHUNKLEN  = 1*DIGIT                                   # Size of the chunk data in bytes >= 1
+CHUNKDATA = <CHUNKLEN number of unsigned bytes>
+ADDDEL-HEAD  = "ad:" CHUNKLIST
+SUBDEL-HEAD  = "sd:" CHUNKLIST
+CHUNKLIST = (RANGE | NUMBER) ["," CHUNKLIST]
+NUMBER    = DIGIT+                                    # Chunk number >= 1
+RANGE     = NUMBER "-" NUMBER
+}}}
+
+Generally speaking lines are in the form "keyword colon parameters". The keyword is limited to one character in this implementation. We reserve the right to use longer keywords later.
+
+The format for _add_ and _sub_ chunks is exactly the same. The number of bytes is followed by one line-feed character (LF, \n) then a binary blob of the indicated length. The length is expressed in bytes in decimal. The LF that follows CHUNKLEN is a separator and is not counted in the length itself. Chunk data encoding is explained in the next section. Chunk data is both encoded and compressed according to which list type it is (see *List Contents* section below). The length described by CHUNKLEN is the size after encoding and/or compression.
+
+The _adddel_ and _subdel_ chunks are used to expire previous _add_ and _sub_ chunks. Consequently they have no associated chunk data. More than one chunk can be specified, either by listing each number or using a range or a combination of both.  When an _add_ chunk is deleted, the client can delete the data associated with that chunk.  When a _sub_ chunk is deleted, the client simply no longer reports that it received that sub chunk in the past.
+
+If there are no chunks of a given type, the entire LISTDATA will be omitted. That is for example if there are no _sub_ or _subdel_ chunks for a given list, there will be no corresponding "s:" or "sd:" information in the metadata.
+
+Chunk types (_add_, _sub_, _adddel_ and _subdel_) can be presented in any order. They can even be intermixed. The order of the chunks depends on the implementation of the server and the clients MUST NOT rely on any empirical behavior. Moreover, the sequence order in which chunks of the same type are present in the stream is not guaranteed.
+
+Example:
+{{{
+n:1200
+i:goog-phish-md5
+a:4:1200
+[encoded data]
+s:3:100
+[encoded data]
+a:6:800
+[encoded data]
+a:7:1200
+[encoded data]
+s:4:42
+[encoded data]
+sd:1,2
+i:acme-white-exp
+a:9:324
+[encoded data]
+a:10:325
+[encoded data]
+ad:1-2,4-5,7
+sd:2-6
+}}}
+
+In this example, there are no _adddel_ chunks for the "goog-phish-md5" list, and there are no _sub_ chunks for the "acme-white-exp" list.
+
+Server Behavior:
+
+    * The server CAN change the "_next_" value (i.e. "n:" line) for each response.
+
+
+Client Behavior:
+
+    * The client MUST respect the "_next_" value and not contact the server again until the specified delay has expired. See the *Update Frequency* section below for more information on how often the server can be contacted after replying with an HTTP error code.
+    * The client MUST ignore a line starting with a keyword that it doesn't understand.
+
+    * The client MUST refuse to use the whole response if any of the _add_, _sub_, _adddel_ and _subdel_ metadata headers or the binary data cannot be parsed successfully.
+    * Upon successful decoding of all the response and all the binary data, the client MUST update its lists in an atomic fashion.
 
