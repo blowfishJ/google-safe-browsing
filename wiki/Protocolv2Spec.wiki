@@ -400,10 +400,10 @@ Regular expression:            http\:\/\/.*.c\.d\/full\/path\.html?myparam=a
 Suffix/prefix regular expression:  c.d/full/path.html?myparam=a
 }}}
 
-For the "exp" list format, the chunk will be compressed using zlib. After decompression, the chunk will contain one plaintext suffix/prefix expression per line. 
+For the "exp" list format, the chunk is compressed using zlib. After decompression, the chunk contains one plaintext suffix/prefix expression per line. 
 
 
-For the "md5" list format, the chunk will not be compressed. Each line in the chunk will contain a binary md5 hash of a suffix/prefix expression.
+For the "md5" list format, the chunk is not compressed. Each entry in the chunk is a 16-bytes binary md5 hash of a suffix/prefix expression.
 
 = 4. MAC =
 
