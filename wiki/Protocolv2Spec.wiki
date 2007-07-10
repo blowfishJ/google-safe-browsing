@@ -491,8 +491,6 @@ The MAC is computed from an MD5 Digest over the following information: clientkey
 
 At any time, when a client includes the *wrkey* CGI parameter in a request, the server may prepend "e:pleaserekey" to any response, on a separate line.  This indicates that the client key is no longer valid and that the client should request a new key using the getkey request specified above.
 
-TODO: Concrete example for testing
-
 = 5. Update Frequency =
 
  Providing the data on the server for updates and lookups requires a fair amount of resources. To help maintain a high quality of service, it may be necessary for the download servers to ask the client to make more or less frequent requests. To handle this, two mechanisms are available:
