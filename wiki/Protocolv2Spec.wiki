@@ -381,3 +381,209 @@ Client Behavior:
     * The client MUST refuse to use the whole response if any of the _add_, _sub_, _adddel_ and _subdel_ metadata headers or the binary data cannot be parsed successfully.
     * Upon successful decoding of all the response and all the binary data, the client MUST update its lists in an atomic fashion.
 
+== 3.6. List Contents ==
+
+The contents of each chunk depends on the list type that the chunk belongs to. Currently, the possible lists are:
+
+    * *goog-phish-md5*: a list of hashed suffix/prefix expressions representing sites that should be blocked because they are hosting phishing pages.
+    * *goog-malware-md5*: a list of suffix/prefix regular expressions representing sites that should be blocked because they are hosting malware pages.
+    * *goog-white-exp*: a list of suffix/prefix regular expressions representing sites that are known to be trusted. Note that this list should only be used for "enhanced mode" clients that do direct lookups to Google to determine which sites are phishy. In that case, if a site is on the whitelist there is no need to send the query to Google.
+
+
+Both the "exp" and "md5" list types rely on suffix/prefix expressions. Each of the suffix/prefix expressions consists of a host suffix (or full host) and a path prefix (or full path).  Note that the path prefix consists of full path components.  If the expression contains the full path, there may optionally be query parameters appended to the path.
+
+Examples:
+Regular expression:                  http\:\/\/.*\.a\.b\/mypath\/.*
+Suffix/prefix expression:            a.b/mypath/
+Regular expression:            http\:\/\/.*.c\.d\/full\/path\.html?myparam=a
+Suffix/prefix regular expression:  c.d/full/path.html?myparam=a
+
+
+For the "exp" list format, the chunk will be compressed using zlib. After decompression, the chunk will contain one plaintext suffix/prefix expression per line. 
+
+
+For the "md5" list format, the chunk will not be compressed. Each line in the chunk will contain a binary md5 hash of a suffix/prefix expression.
+
+= 4. MAC =
+
+We support a Message Authentication Code in this protocol, similar to the old protocol.
+
+== 4.1. HTTP Request for Key ==
+
+In order to receive a MAC, the client must request a key from the server over a secure connection.  The getkey request should only be called once per client, unless the server requests that the client changes its key (see below).
+
+=== 4.1.1. Request's URL ===
+
+The client performs a request by sending an HTTP GET request to the URI:
+{{{
+http://sb.google.com/safebrowsing/getkey?client=CLIENTID&appver=CLIENTVER&pver=PVER
+}}}
+
+CGI parameters are the same as those used in the HTTP Request for List (section 3.2 above.)
+
+Example:
+{{{
+    http://sb.google.com/safebrowsing/getkey?client=myapplication&appver=1.5.2&pver=2.0
+}}}
+
+== 4.2. HTTP Response for Key ==
+
+=== 4.2.1. Response Code ===
+
+The server generates the following HTTP error codes:
+
+    * 200: OK -- Data is available in the HTTP response body.
+    * 400: Bad Request -- The HTTP request was not correctly formed. The client did not provide all required CGI parameters.
+    * 401: Not Authorized -- The client id is invalid.
+    * 503: Service Unavailable -- The server cannot handle the request. Clients MUST follow the backoff behavior specified in the *Update Frequency* section.
+    * 505: HTTP Version Not Supported -- The server CANNOT handle the requested protocol major version.
+
+=== 4.2.2. Response Body ===
+
+There is no data in the response body for codes in 3xx, 4xx and 5xx.
+
+When present, the response body contains a client key and a wrapped key.
+
+Formal R-BNF description of the response body:
+{{{
+BODY   = "clientkey:" LENGTH ":" MACKEY LF "wrappedkey:" LENGTH ":" MACKEY EOF
+LENGTH = DIGIT+
+}}}
+
+Example:
+{{{
+clientkey:24:pOAblTUiZFkLSv3xRiXKKQ==
+wrappedkey:24:MTqdJvrixHRGAyfebvaQWYda
+}}}
+
+== 4.3. Requesting the MAC ==
+
+ The client must include the wrapped key in the request if it wants a MAC. For example, the request will look like this:
+{{{
+http://sb.google.com/safebrowsing/download?client=foo&appver=1.5&pver=2.0&wrkey=123
+}}}
+
+The client specifies whether it wants a MAC on a per list basis in the body of the POST data for the request by adding a keyword after each desired list:
+{{{
+s;200
+goog-phish-md5;a:1-3,5,8:s:4-5
+acme-white-exp;a:1-7:s:1-2:mac
+}}}
+
+In the response, the MAC will be listed after the corresponding list name. For example:
+{{{
+n:1200
+i:goog-phish-md5
+a:4:1200
+[encoded data]
+s:3:42
+[encoded data]
+i:acme-white-exp,my_mac_here
+a:9:320
+[encoded data]
+d:1-2
+}}}
+
+The MAC is computed from an MD5 Digest over the following information: clientkey|separator|table data|separator|clientkey. The separator is the string :coolgoog: - that is a colon followed by "coolgoog" followed by a colon. The resulting 128-bit MD5 digest is websafe baset64 encoded.
+
+== 4.4. Key Expiration ==
+
+At any time, when a client includes the *wrkey* CGI parameter in a request, the server may prepend "e:pleaserekey" to any response, on a separate line.  This indicates that the client key is no longer valid and that the client should request a new key using the getkey request specified above.
+
+TODO: Concrete example for testing
+
+= 5. Update Frequency =
+
+ Providing the data on the server for updates and lookups requires a fair amount of resources. To help maintain a high quality of service, it may be necessary for the download servers to ask the client to make more or less frequent requests. To handle this, two mechanisms are available:
+
+    * In its response, the server gives an _update_ _interval_, i.e. the delay in seconds before the next connection attempt should occur.
+    * The client watches for HTTP timeouts or errors (i.e. HTTP response code 5xx) from the server and if too many errors occur, it increases in the time between requests.
+
+
+Client Behavior:
+
+    * The first update request MUST happen at a random interval between 0 and 5 minutes after the browser starts.
+    * The second update request MUST happen at the update interval last specified by the server. If this value is unknown, the request MUST happen between 15 and 45 minutes later.
+    * After that, each update MUST happen at the update interval last specified by the server.
+    * If the client receives an error during update, it MUST try again in at least one minute.
+    * If it receives three errors in a row, it MUST skip updates until at least 60 minutes have passed before trying again.
+    * If it then receives another (4th) error, it MUST skip updates for the next 180 minutes and if it receives another (5th) error, it MUST skip updates for the next 360 minutes. It SHOULD continue to check once every 360 minutes until the server responds with a success message.
+    * Once the client receives successful HTTP replies, the error stats are reset.
+
+= 6. Performing Lookups =
+
+== 6.1. Canonicalization ==
+Before lookup in any list, the url must be canonicalized.
+
+We assume that the client has parsed the URL and made it valid according to RFC 2396.  If it's an international url, use the ascii punycode representation.  The URL must include a path component, e.g. 'http://google.com/' must have a trailing slash.
+
+To start, repeatedly URL-unescape the URL until it has no more hex-encodings.
+
+To canonicalize the hostname:
+
+Extract the hostname from the URL and then follow these steps:
+
+    * Remove all leading and trailing dots
+    * Replace consecutive dots with a single dot.
+    * If the hostname can be parsed as an IP address, it should be normalized to 4 dot-separated decimal values.  The client should handle any legal IP address encoding, including octal, hex, and fewer than 4 components.
+    * Lowercase the whole string. 
+
+
+To canonicalize the path:
+
+    * The sequences "/../" and "/./" in the path should be resolved, by replacing "/./" with "/", and removing "/../" along with the preceding path component.
+    * Runs of consecutive slashes should be replaced with a single slash character.
+
+
+After performing these steps, percent-escape all characters in the URL which are <= ASCII 32, >= 127, or "%". The escapes should use uppercase hex characters.
+
+== 6.2. Simplified Regular Expression Lookup ==
+
+Currently all valid list types rely on suffix/prefix expressions, as described in the List Contents section above. To perform a lookup for a given url, the client will try to form different possible host suffix and path prefix combinations and seeing if they match each list. Depending on the list type, the suffix/prefix combination may be hashed before lookup. For these lookups, only the host and path components of the URL are used. The scheme, username, password, and port are disregarded. If query parameters are present in the url, the client will also include a lookup with the full path and query parameters.
+
+For the hostname, the client will try at most 5 different strings. They are:
+
+    * the exact hostname in the url
+    * up to 4 hostnames formed by starting with the last 5 components and successively removing the leading component.  The top-level domain can be skipped.
+
+
+For the path, the client will also try at most 6 different strings. They are:
+
+    * the exact path of the url, including query parameters
+    * the exact path of the url, without query parameters
+    * the 4 paths formed by starting at the root (/) and successively appending path components, including a trailing slash.
+
+
+The following examples should help illustrate the lookup behavior:
+
+For the url http://a.b.c/1/2.html?param=1, the client will try these possible strings:
+{{{
+a.b.c/1/2.html?param=1
+a.b.c/1/2.html
+a.b.c/
+a.b.c/1/
+b.c/1/2.html?param=1
+b.c/1/2.html
+b.c/
+b.c/1/
+}}}
+
+For the url http://a.b.c.d.e.f.g/1.html, the client will try these possible strings:
+{{{
+a.b.c.d.e.f.g/1.html
+a.b.c.d.e.f.g/
+(Note: skip b.c.d.e.f.g, since we'll take only the last 5 hostname components, and the full hostname)
+c.d.e.f.g/1.html
+c.d.e.f.g/
+d.e.f.g/1.html
+d.e.f.g/
+e.f.g/1.html
+e.f.g/
+f.g/1.html
+f.g/
+}}}
+
+= 7. References =
+    * [http://www.ietf.org/rfc/rfc2119.txt RFC 2119] -- Keywords for use in RFCs.
+    * [http://www.ietf.org/rfc/rfc2616.txt RFC 2616] -- Hypertext transfer Protocol HTTP/1.1.
+    * [http://wiki.mozilla.org/Phishing_Protection Mozilla/Firefox Phishing Protection].
