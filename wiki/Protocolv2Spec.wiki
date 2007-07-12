@@ -1,4 +1,5 @@
 #summary Client specification for the Google Safe Browsing v2 protocol
+#labels Featured,Phase-Implementation
 
 Status: DRAFT as of 2007/06/28
 
@@ -586,4 +587,3 @@ f.g/
     * [http://www.ietf.org/rfc/rfc2119.txt RFC 2119] -- Keywords for use in RFCs.
     * [http://www.ietf.org/rfc/rfc2616.txt RFC 2616] -- Hypertext transfer Protocol HTTP/1.1.
     * [http://wiki.mozilla.org/Phishing_Protection Mozilla/Firefox Phishing Protection].
-
