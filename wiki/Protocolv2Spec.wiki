@@ -505,7 +505,7 @@ wrappedkey:24:MTqdJvrixHRGAyfebvaQWYda
 
 The client must include the wrapped key in the request if it wants a MAC. For example, the request will look like this:
 {{{
-http://sb.google.com/safebrowsing/download?client=foo&appver=1.5&pver=2.0&wrkey=123
+http://sb.google.com/safebrowsing/downloads?client=foo&appver=1.5&pver=2.0&wrkey=123
 }}}
 
 The client specifies whether it wants a MAC on a per list basis in the body of the POST data for the request by adding a keyword after each desired list:
