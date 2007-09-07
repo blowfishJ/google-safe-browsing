@@ -180,7 +180,7 @@ This is used by clients who want to get new data for known list types.
 
 The client performs a datarequest by sending an HTTP POST request to the URI:
 {{{
-http://sb.google.com/safebrowsing/download?client=CLIENTID&appver=CLIENTVER&pver=PVER&wrkey=MACKEY
+http://sb.google.com/safebrowsing/downloads?client=CLIENTID&appver=CLIENTVER&pver=PVER&wrkey=MACKEY
 }}}
 
 CGI parameters are the same as those used in the HTTP Request for List (section 3.2 above.)
@@ -195,7 +195,7 @@ MACKEY    = (ALPHA | DIGIT)+
 
 Example:
 {{{
-http://sb.google.com/safebrowsing/download?client=myapplication&appver=1.5.2&pver=2.0
+http://sb.google.com/safebrowsing/downloads?client=myapplication&appver=1.5.2&pver=2.0
 }}}
 
 Client Behavior:
@@ -631,4 +631,3 @@ f.g/
     * [http://www.ietf.org/rfc/rfc2616.txt RFC 2616] -- Hypertext transfer Protocol HTTP/1.1.
     * [http://wiki.mozilla.org/Phishing_Protection Mozilla/Firefox Phishing Protection].
     * [http://csrc.nist.gov/publications/fips/fips180-2/fips180-2withchangenotice.pdf FIPS-180-2] -- SHA 256
-
