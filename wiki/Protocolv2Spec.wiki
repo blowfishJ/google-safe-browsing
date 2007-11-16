@@ -200,7 +200,7 @@ http://sb.google.com/safebrowsing/downloads?client=myapplication&appver=1.5.2&pv
 
 Client Behavior:
 
-    * The client MUST specify the *client*, *appver* and pver cgi parameters.
+    * The client MUST specify the *client*, *appver* and *pver* cgi parameters.
 
 === 3.4.2. Request's body ===
 
@@ -315,22 +315,28 @@ The body contains both the chunk data (binary blobs) and the metadata describing
 Formal R-BNF description of the response body:
 {{{
 BODY      = NEXT LF [REKEY LF] (LIST LF)+ EOF
-REKEY     = "k: pleaserekey"
 NEXT      = "n:" DIGIT+                               # Minimum delay before polling again in seconds
+REKEY     = "k: pleaserekey"
+REDIRECT_URL = "u:" URL [MAC]
+URL       = Defined in RFC 1738
 LIST      = "i:" LISTNAME [MAC] (LF LISTDATA)+
 MAC       = "," (LOALPHA | DIGIT)+
-LISTNAME = (LOALPHA | DIGIT)+ "-" LOALPHA+ "-" (LOALPHA | DIGIT)+
+ADDDEL-HEAD  = "ad:" CHUNKLIST
+SUBDEL-HEAD  = "sd:" CHUNKLIST
+CHUNKLIST = (RANGE | NUMBER) ["," CHUNKLIST]
+NUMBER    = DIGIT+                                    # Chunk number >= 1
+RANGE     = NUMBER "-" NUMBER
+}}}
+
+formal R-BNF description of redirect response:
+{{{
+LISTNAME  = (LOALPHA | DIGIT)+ "-" LOALPHA+ "-" (LOALPHA | DIGIT)+
 LISTDATA  = ADD-HEAD | SUB-HEAD | ADDDEL-HEAD | SUBDEL-HEAD
 ADD-HEAD  = "a:" CHUNKNUM ":" CHUNKLEN LF CHUNKDATA   # Length in bytes in decimal
 SUB-HEAD  = "s:" CHUNKNUM ":" CHUNKLEN LF CHUNKDATA   # Length in bytes in decimal
 CHUNKNUM  = 1*DIGIT                                   # Sequence number of the chunk
 CHUNKLEN  = 1*DIGIT                                   # Size of the chunk data in bytes >= 1
 CHUNKDATA = <CHUNKLEN number of unsigned bytes>
-ADDDEL-HEAD  = "ad:" CHUNKLIST
-SUBDEL-HEAD  = "sd:" CHUNKLIST
-CHUNKLIST = (RANGE | NUMBER) ["," CHUNKLIST]
-NUMBER    = DIGIT+                                    # Chunk number >= 1
-RANGE     = NUMBER "-" NUMBER
 }}}
 
 Generally speaking lines are in the form "keyword colon parameters". The keyword is limited to one character in this implementation. We reserve the right to use longer keywords later.
@@ -455,13 +461,13 @@ We support a Message Authentication Code in this protocol, similar to the old pr
 
 == 4.1. HTTP Request for Key ==
 
-In order to receive a MAC, the client must request a key from the server over a secure connection.  The getkey request should only be called once per client, unless the server requests that the client changes its key (see below).
+In order to receive a MAC, the client must request a key from the server over a secure connection.  The newkey request should only be called once per client, unless the server requests that the client changes its key (see below).
 
 === 4.1.1. Request's URL ===
 
 The client performs a request by sending an HTTP GET request to the URI:
 {{{
-http://sb.google.com/safebrowsing/getkey?client=CLIENTID&appver=CLIENTVER&pver=PVER
+http://sb.google.com/safebrowsing/newkey?client=CLIENTID&appver=CLIENTVER&pver=PVER
 }}}
 
 CGI parameters are the same as those used in the HTTP Request for List (section 3.2 above.)
