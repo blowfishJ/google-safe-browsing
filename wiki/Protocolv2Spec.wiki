@@ -343,8 +343,7 @@ CHUNKLEN  = 1*DIGIT                                   # Size of the chunk data i
 CHUNKDATA = <CHUNKLEN number of unsigned bytes>
 }}}
 
-
-The response is protected by two different types of macs. The first mac covers the entire response other than the MAC-HEAD and associated LF.  This prevents attackers from deleting arbitrary chunks.  The second type of mac is associated with each redirect url.  This mac covers the entire redirect response.  The first type of mac will appear if the user has given a valid wrapped key in the request, the second is present if the request designated the list that the redirect refers to as a maced list.
+The MACs used in this response are described in detail in section 4.
 
 The format for _add_ and _sub_ chunks is exactly the same. The number of bytes is followed by one line-feed character (LF, \n) then a binary blob of the indicated length. The length is expressed in bytes in decimal. The LF that follows CHUNKLEN is a separator and is not counted in the length itself. Chunk data encoding is explained in the next section. Chunk data is both encoded and compressed according to which list type it is (see *List Contents* section below). The length described by CHUNKLEN is the size after encoding and/or compression.
 
@@ -526,28 +525,25 @@ The client must include the wrapped key in the request if it wants a MAC. For ex
 http://sb.google.com/safebrowsing/downloads?client=foo&appver=1.5&pver=2.0&wrkey=123
 }}}
 
-The client specifies whether it wants a MAC on a per list basis in the body of the POST data for the request by adding a keyword after each desired list:
+The entire response will be protected by a MAC if the *wrkey* parameter is set.  The client can also request a MAC for any individual list by adding the mac keyword after any desired list:
 {{{
 s;200
 goog-phish-sha128;a:1-3,5,8:s:4-5
 acme-white-exp;a:1-7:s:1-2:mac
 }}}
 
-In the response, the MAC will be listed after the corresponding list name. For example:
+In the response, the full body MAC will be listed first, and any list MACs will be listed after the redirect url that they belong to:
 {{{
+m:MACOFDATA
 n:1200
 i:goog-phish-sha128
-a:4:1200
-[encoded data]
-s:3:42
-[encoded data]
-i:acme-white-exp,my_mac_here
-a:9:320
-[encoded data]
+u:cache.google.com/redirect_one
+i:acme-white-exp
+u:cache.google.com,FIRST_MAC
 d:1-2
 }}}
 
-The MAC is computed from an MD5 Digest over the following information: clientkey|separator|table data|separator|clientkey. The separator is the string :coolgoog: - that is a colon followed by "coolgoog" followed by a colon. The resulting 128-bit MD5 digest is websafe baset64 encoded.
+Boths MACs are HMAC-SHA1 and are websafe base64 encoded. The first MAC is all data in the response after the MAC and trailing LF.  The second covers all the data in the redirect response.
 
 == 4.4. Key Expiration ==
 
