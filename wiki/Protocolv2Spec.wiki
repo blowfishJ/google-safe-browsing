@@ -328,6 +328,10 @@ NUMBER    = DIGIT+                                    # Chunk number >= 1
 RANGE     = NUMBER "-" NUMBER
 }}}
 
+Generally speaking lines are in the form "keyword colon parameters". The keyword is limited to one character in this implementation. We reserve the right to use longer keywords later.
+
+The response doesn't actually have contain the data associated with the lists, instead it tells you were the find the data via redirect urls.  These urls should be visited in the order that they are given, and if an error is encountered fetching any of the urls then the client must NOT fetch any url after that.  Parallel fetching is NOT allowed.
+
 formal R-BNF description of redirect response:
 {{{
 LISTNAME  = (LOALPHA | DIGIT)+ "-" LOALPHA+ "-" (LOALPHA | DIGIT)+
@@ -339,7 +343,8 @@ CHUNKLEN  = 1*DIGIT                                   # Size of the chunk data i
 CHUNKDATA = <CHUNKLEN number of unsigned bytes>
 }}}
 
-Generally speaking lines are in the form "keyword colon parameters". The keyword is limited to one character in this implementation. We reserve the right to use longer keywords later.
+
+The response is protected by two different types of macs. The first mac covers the entire response other than the MAC-HEAD and associated LF.  This prevents attackers from deleting arbitrary chunks.  The second type of mac is associated with each redirect url.  This mac covers the entire redirect response.  The first type of mac will appear if the user has given a valid wrapped key in the request, the second is present if the request designated the list that the redirect refers to as a maced list.
 
 The format for _add_ and _sub_ chunks is exactly the same. The number of bytes is followed by one line-feed character (LF, \n) then a binary blob of the indicated length. The length is expressed in bytes in decimal. The LF that follows CHUNKLEN is a separator and is not counted in the length itself. Chunk data encoding is explained in the next section. Chunk data is both encoded and compressed according to which list type it is (see *List Contents* section below). The length described by CHUNKLEN is the size after encoding and/or compression.
 
@@ -353,6 +358,15 @@ Example:
 {{{
 n:1200
 i:goog-phish-sha128
+u: cache.google.com/first_redirect_example
+sd:1,2
+i:acme-white-exp
+u: cache.google.com/second_redirect_example
+ad:1-2,4-5,7
+sd:2-6
+
+contents of first_redirect_example:
+i:goog-phish-sha128
 a:4:1200
 [encoded data]
 s:3:100
@@ -363,17 +377,15 @@ a:7:1200
 [encoded data]
 s:4:42
 [encoded data]
-sd:1,2
-i:acme-white-exp
+
+contents of second_redirect_example:
 a:9:324
 [encoded data]
 a:10:325
 [encoded data]
-ad:1-2,4-5,7
-sd:2-6
 }}}
 
-In this example, there are no _adddel_ chunks for the "goog-phish-sha128" list, and there are no _sub_ chunks for the "acme-white-exp" list.
+In this example, there are no _adddel_ chunks for the "goog-phish-sha128" list, and there are no _sub_ chunks for the "acme-white-exp" redirect response.
 
 Server Behavior:
 
