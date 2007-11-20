@@ -219,7 +219,7 @@ BODY      = [SIZE LF] (LIST LF)+ EOF
 SIZE      = "s;" DIGIT+                            # Optional size, in kilobytes and >= 1
 LIST      = LISTNAME ";" [LISTINFO [":" LISTINFO]*]
 LISTINFO  = (CHUNKTYPE ":" CHUNKLIST) | "mac"
-LISTNAME = (LOALPHA | DIGIT)+ "-" LOALPHA+ "-" (LOALPHA | DIGIT)+
+LISTNAME  = (LOALPHA | DIGIT)+ "-" LOALPHA+ "-" (LOALPHA | DIGIT)+
 CHUNKTYPE = "a" | "s"                              # 'Add' or 'Sub' chunks
 CHUNKLIST = (RANGE | NUMBER) ["," CHUNKLIST]
 NUMBER    = DIGIT+                                 # Chunk number >= 1
@@ -422,9 +422,18 @@ Suffix/prefix regular expression:  c.d/full/path.html?myparam=a
 For the "exp" list format, the chunk is compressed using zlib. After decompression, the chunk contains one plaintext suffix/prefix expression per line. 
 
 
-For the "sha128" list format, the chunk is not compressed. Each entry in the chunk is composed of the 128 most significant bits of the SHA 256 hash of a host key(described in section 6), followed by a byte which is the count of the number of expressions, followed by data.  For add chunks, this data is the 128 most significant bits of the SHA 256 hash.  For sub chunks, this data is the hash followed by the chunk number of the add chunk that the expression refers to.  
+For the "sha128" list format, the chunk is not compressed. Each entry in the chunk is composed of the 128 most significant bits of the SHA 256 hash of a host key, followed by a byte which is the count of the number of expressions, followed by data.  For add chunks, this data is the 128 most significant bits of the SHA 256 hash.  For sub chunks, this data is the hash followed by the chunk number of the add chunk that the expression refers to.  
 
 The count MAY be 0, and has a particular meaning.  In this case, all urls under the host should be considered a match.
+
+A host key is made by taking the three most significant host components if there are three or more components, or two host components if a third does not exist.
+
+Examples:
+{{{
+google.com -> google.com
+sb.google.com -> sb.google.com
+a.b.c.google.com -> c.google.com
+}}}
 
 Host keys MAY be repeated in a single chunk.  For instance, if there are more than 255 expressions for a particular key.
 
