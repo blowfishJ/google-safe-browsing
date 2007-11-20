@@ -378,6 +378,7 @@ s:4:42
 [encoded data]
 
 contents of second_redirect_example:
+i:acme-white-exp
 a:9:324
 [encoded data]
 a:10:325
@@ -421,7 +422,11 @@ Suffix/prefix regular expression:  c.d/full/path.html?myparam=a
 For the "exp" list format, the chunk is compressed using zlib. After decompression, the chunk contains one plaintext suffix/prefix expression per line. 
 
 
-For the "sha128" list format, the chunk is not compressed. Each entry in the chunk is composed of the 128 most significant bits of the SHA 256 hash of a suffix/prefix expression.
+For the "sha128" list format, the chunk is not compressed. Each entry in the chunk is composed of the 128 most significant bits of the SHA 256 hash of a host key(described in section 6), followed by a byte which is the count of the number of expressions, followed by data.  For add chunks, this data is the 128 most significant bits of the SHA 256 hash.  For sub chunks, this data is the hash followed by the chunk number of the add chunk that the expression refers to.  
+
+The count MAY be 0, and has a particular meaning.  In this case, all urls under the host should be considered a match.
+
+Host keys MAY be repeated in a single chunk.  For instance, if there are more than 255 expressions for a particular key.
 
 
 Here are some example of "sha128" hashes, based on the examples from
