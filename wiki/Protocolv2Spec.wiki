@@ -1,13 +1,13 @@
 #summary Client specification for the Google Safe Browsing v2 protocol
 #labels Featured,Phase-Implementation
 
-Status: DRAFT as of 2007/07/20
+Status: DRAFT as of 2007/11/20
 
 Copyright 2007 Google Inc.  All Rights Reserved.
 
-Authors: Garrett Casto, Raphaël Moll, and Marria Nazif
+Authors: Garrett Casto, Oliver Fisher, Raphaël Moll, and Marria Nazif
 
-Notes: The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119. 
+Notes: The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119.
 
 = 1. Background =
 
@@ -18,9 +18,9 @@ _Note_: This document assumes the reader is familiar with the anti-phishing serv
 Version 1 of the update protocol is inefficient and not scalable. Caveats of the version 1 of the protocol include:
 
     * It does not support partial list updates unless a client has a recent version of the list already fully downloaded. A new client must download the entire list of phishing entries at once or else it will never get any data. As a result, some clients using slow connections take a very long time to download the full list, the request times out, and they never download anything.
-
     * It sends phishing data to the client in oldest to newest order, which is inefficient for phishing sites since they have a very short lifetime.
     * Expiring old entries requires listing them in updates, which actually consumes bandwidth.
+    * Clients only rarely find a match with a 128-bit blacklisted hash, so sending all the data is somewhat wasteful.
 
 
 = 2. Overview =
@@ -31,9 +31,11 @@ Version 2 of the update protocol is designed with the following characteristics:
     * Clients can recommend a download size that they want to see, although their request is not guaranteed by the server.
     * Clients inherently perform _partial_ updates each time they connect, and the server will send the most valuable data to client first (for example, perhaps the most recent data).
     * The chunk structure is determined by the list type.  For example, in some cases chunk entries are plain text expressions and in some cases they are hash values.
+    * Chunks that contain hash values do not contain the full hash, only a prefix for that hash. A new type of request (a gethash request) can be issued to get the list of full-length hashes that start with the prefix.
+    * Within each chunk, all hash prefixes are the same length, but different chunks may contain prefixes of different lengths.
 
 
-As with the previous protocol, the new protocol supports many different blacklists or whitelists. List names are in the form "provider-type-format", e.g. "goog-phish-sha128".  Each item in a list will represent an expression that will match a malicious url, but the exact format depends on the list type and how the content is used is application-specific.  Note that the rest of the specification will generally talk about lists in terms of blacklists but the protocol itself is agnostic to the content of the list.  (See the *List Contents* section below for details.)
+As with the previous protocol, the new protocol supports many different blacklists or whitelists. List names are in the form "provider-type-format", e.g. "goog-phish-sha256".  Each item in a list will represent an expression that will match a malicious url, but the exact format depends on the list type and how the content is used is application-specific.  Note that the rest of the specification will generally talk about lists in terms of blacklists but the protocol itself is agnostic to the content of the list.  (See the *List Contents* section below for details.)
 
 The lists are divided into chunks, the smallest unit of data that will be sent to the client. This allows for supporting partial updates to all users, including new users, and allows for more flexibility in choosing which data to send the client.  The actual chunk size is determined by the server.
 
@@ -168,8 +170,8 @@ LISTNAME = (LOALPHA | DIGIT)+ "-" LOALPHA+ "-" (LOALPHA | DIGIT)+
 
 Example:
 {{{
-goog-phish-sha128
-goog-malware-sha128
+goog-phish-sha256
+goog-malware-sha256
 }}}
 
 == 3.4. HTTP Request for Data ==
@@ -234,16 +236,16 @@ We strongly recommend that clients omit the size field unless they have a specia
 
 Example 1:
 {{{
-goog-phish-sha128;a:1-3,5,8:s:4-5
-acme-white-sha128;a:1-7:s:1-2
+goog-phish-sha256;a:1-3,5,8:s:4-5
+acme-white-sha256;a:1-7:s:1-2
 }}}
 In this example, the client requests data for two lists. It then lists the chunks it already has for each list type.
 
 Example 2:
 {{{
 s;200
-goog-phish-sha128;a:1-3,5,8:s:4-5
-acme-white-sha128;a:1-7:s:1-2
+goog-phish-sha256;a:1-3,5,8:s:4-5
+acme-white-sha256;a:1-7:s:1-2
 }}}
 
 In this example, the client requests a response size of 200 kilobytes for the two given lists. It then lists the chunks it already has for each list type.
@@ -251,26 +253,26 @@ In this example, the client requests a response size of 200 kilobytes for the tw
 Note that at first the client has no data so it has no chunk number on its side. Generally speaking if a client does not have any chunks of one type it should not list the corresponding chunk type.
 Example (inline comments start after a # and are not part of the protocol:)
 {{{
-goog-phish-sha128;a:1-5      # The client has 'add' chunks but no 'sub' chunks
+goog-phish-sha256;a:1-5      # The client has 'add' chunks but no 'sub' chunks
 
-acme-malware-sha128;           # The client has no data for this list.
+acme-malware-sha256;           # The client has no data for this list.
 
-acme-white-sha128;mac        # No data here either and it wants a mac
+acme-white-sha256;mac        # No data here either and it wants a mac
 }}}
 
 Examples of good chunk lists:
 {{{
-goog-phish-sha128;a:1-5,10,12:s:3-8
-goog-phish-sha128;a:1,2,3,4,5,10,12,15,16
-goog-phish-sha128;a:1-5,10,12,15-16
-goog-phish-sha128;a:16-10,2-5,4
+goog-phish-sha256;a:1-5,10,12:s:3-8
+goog-phish-sha256;a:1,2,3,4,5,10,12,15,16
+goog-phish-sha256;a:1-5,10,12,15-16
+goog-phish-sha256;a:16-10,2-5,4
 }}}
 
 Examples of bad chunk lists:
 {{{
-goog-phish-sha128              # Missing ; at end of list name
-goog-phish-sha128;5-1,16-10    # Missing 'a:' or 's:' for chunk type
-goog-phish-sha128;a:5-1:s:     # Missing chunk numbers for 's:'
+goog-phish-sha256              # Missing ; at end of list name
+goog-phish-sha256;5-1,16-10    # Missing 'a:' or 's:' for chunk type
+goog-phish-sha256;a:5-1:s:     # Missing chunk numbers for 's:'
 }}}
 
 Server Behavior:
@@ -336,9 +338,10 @@ formal R-BNF description of redirect response:
 {{{
 LISTNAME  = (LOALPHA | DIGIT)+ "-" LOALPHA+ "-" (LOALPHA | DIGIT)+
 LISTDATA  = ADD-HEAD | SUB-HEAD | ADDDEL-HEAD | SUBDEL-HEAD
-ADD-HEAD  = "a:" CHUNKNUM ":" CHUNKLEN LF CHUNKDATA   # Length in bytes in decimal
-SUB-HEAD  = "s:" CHUNKNUM ":" CHUNKLEN LF CHUNKDATA   # Length in bytes in decimal
+ADD-HEAD  = "a:" CHUNKNUM ":" HASHLEN ":" CHUNKLEN LF CHUNKDATA   # Length in bytes in decimal
+SUB-HEAD  = "s:" CHUNKNUM ":" HASHLEN ":" CHUNKLEN LF CHUNKDATA   # Length in bytes in decimal
 CHUNKNUM  = 1*DIGIT                                   # Sequence number of the chunk
+HASHLEN   = 1*DIGIT                                                                      # Decimal length of each hash prefix in bytes
 CHUNKLEN  = 1*DIGIT                                   # Size of the chunk data in bytes >= 1
 CHUNKDATA = <CHUNKLEN number of unsigned bytes>
 }}}
@@ -356,36 +359,38 @@ Chunk types (_add_, _sub_, _adddel_ and _subdel_) can be presented in any order.
 Example:
 {{{
 n:1200
-i:goog-phish-sha128
+i:goog-phish-sha256
 u: cache.google.com/first_redirect_example
 sd:1,2
 i:acme-white-exp
 u: cache.google.com/second_redirect_example
 ad:1-2,4-5,7
 sd:2-6
-
+}}}
+{{{
 contents of first_redirect_example:
-i:goog-phish-sha128
-a:4:1200
+i:goog-phish-sha256
+a:4:48:1200
 [encoded data]
-s:3:100
+s:3:96:100
 [encoded data]
-a:6:800
+a:6:32:800
 [encoded data]
-a:7:1200
+a:7:48:1200
 [encoded data]
-s:4:42
+s:4:16:40
 [encoded data]
-
+}}}
+{{{
 contents of second_redirect_example:
 i:acme-white-exp
-a:9:324
+a:9:32:320
 [encoded data]
-a:10:325
+a:10:64:320
 [encoded data]
 }}}
 
-In this example, there are no _adddel_ chunks for the "goog-phish-sha128" list, and there are no _sub_ chunks for the "acme-white-exp" redirect response.
+In this example, there are no _adddel_ chunks for the "goog-phish-sha256" list, and there are no _sub_ chunks for the "acme-white-exp" redirect response.
 
 Server Behavior:
 
@@ -404,29 +409,43 @@ Client Behavior:
 
 The contents of each chunk depends on the list type that the chunk belongs to. Currently, the possible lists are:
 
-    * *goog-phish-sha128*: a list of hashed suffix/prefix expressions representing sites that should be blocked because they are hosting phishing pages.
-    * *goog-malware-sha128*: a list of suffix/prefix regular expressions representing sites that should be blocked because they are hosting malware pages.
+    * *goog-phish-sha256*: a list of hashed suffix/prefix expressions representing sites that should be blocked because they are hosting phishing pages.
+    * *goog-malware-sha256*: a list of suffix/prefix regular expressions representing sites that should be blocked because they are hosting malware pages.
     * *goog-white-exp*: a list of suffix/prefix regular expressions representing sites that are known to be trusted. Note that this list should only be used for "enhanced mode" clients that do direct lookups to Google to determine which sites are phishy. In that case, if a site is on the whitelist there is no need to send the query to Google.
 
 
-Both the "exp" and "sha128" list types rely on suffix/prefix expressions. Each of the suffix/prefix expressions consists of a host suffix (or full host) and a path prefix (or full path).  Note that the path prefix consists of full path components.  If the expression contains the full path, there may optionally be query parameters appended to the path.
+Both the "exp" and "sha256" list types rely on suffix/prefix expressions. Each of the suffix/prefix expressions consists of a host suffix (or full host) and a path prefix (or full path).  Note that the path prefix consists of full path components.  If the expression contains the full path, there may optionally be query parameters appended to the path.
 
 Examples:
 {{{
 Regular expression:                  http\:\/\/.*\.a\.b\/mypath\/.*
 Suffix/prefix expression:            a.b/mypath/
-Regular expression:            http\:\/\/.*.c\.d\/full\/path\.html?myparam=a
-Suffix/prefix regular expression:  c.d/full/path.html?myparam=a
+}}}
+{{{
+Regular expression:                  http\:\/\/.*.c\.d\/full\/path\.html?myparam=a
+Suffix/prefix regular expression:    c.d/full/path.html?myparam=a
 }}}
 
-For the "exp" list format, the chunk is compressed using zlib. After decompression, the chunk contains one plaintext suffix/prefix expression per line. 
+For the "exp" list format, the chunk is compressed using zlib. After decompression, the chunk contains one plaintext suffix/prefix expression per line.
 
+=== 3.6.1. sha256 list format ===
 
-For the "sha128" list format, the chunk is not compressed. Each entry in the chunk is composed of the 128 most significant bits of the SHA 256 hash of a host key, followed by a byte which is the count of the number of expressions, followed by data.  For add chunks, this data is the 128 most significant bits of the SHA 256 hash.  For sub chunks, this data is the hash followed by the chunk number of the add chunk that the expression refers to.  
+For the "sha256" list format, chunk data is not compressed.  But to reduce bandwidth hash prefixes are used.  A hash prefix is some number of the most significant bits of a full-length, 256-bit hash.  The chunk data header indicates the length of the hash prefixes in that chunk.
 
-The count MAY be 0, and has a particular meaning.  In this case, all urls under the host should be considered a match.
+For sub chunks, the encoded chunk data is a list entries refering to hash prefixes that were added.  Each entry is a hash prefix of the length specified in the chunk data header followed by a number indicating which add chunk that prefix as added in.
 
-A host key is made by taking the three most significant host components if there are three or more components, or two host components if a third does not exist.
+For add chunks, the encoded chunk data is a list of entries refering to host key information.  Each entry is a 32-bit hash prefix for a host key (see below) followed by a one (1) byte count of hash prefixes that follow.  The following hash prefixes are of the length specified in the chunk data header.  Note that the host key hash prefix is always 32-bits.
+
+{{{
+ADD-DATA = (HOSTKEY COUNT [PREFIX]*)+
+HOSTKEY  = <4 unsigned bytes>                            # 32-bit hash prefix
+COUNT    = <1 unsigned byte>
+PREFIX   = <HASHLEN unsigned bytes>
+}}}
+
+There may be no hash prefixes following a host key and in such cases the one byte count will be 0.  This has special meaning and indicates that all urls under a host should be considered a match.
+
+A host key is made by taking the 32 most significant bits of the SHA256 hash of the three most significant host components if there are three or more components, or two host components if a third does not exist.
 
 Examples:
 {{{
@@ -438,47 +457,123 @@ a.b.c.google.com -> c.google.com
 Host keys MAY be repeated in a single chunk.  For instance, if there are more than 255 expressions for a particular key.
 
 
-Here are some example of "sha128" hashes, based on the examples from
+Here are some example of "sha256" hashes, based on the examples from
 [http://csrc.nist.gov/publications/fips/fips180-2/fips180-2withchangenotice.pdf FIPS-180-2]:
 
   * Example B1:
     * Input is `"abc"`
     * SHA 256 digest is `ba7816bf 8f01cfea 414140de 5dae2223 b00361a3 96177a9c b410ff61 f20015ad`.
-    * Our key is `ba7816bf 8f01cfea 414140de 5dae2223`.
+    * The 32-bit hash prefix is `ba7816bf`.
   * Example B2:
     * Input is `"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"`
     * SHA 256 digest is `248d6a61 d20638b8 e5c02693 0c3e6039 a33ce459 64ff2167 f6ecedd4 19db06c1`.
-    * Our key is `248d6a61 d20638b8 e5c02693 0c3e6039`.
+    * The 48-bit hash prefix is `248d6a61 d206`.
 
 
 Here's a unit test you can use to validate the key computation (in pseudo-C):
 {{{
   // Example B1 from FIPS-180-2
   string input1 = "abc";
-  string output1 = TruncatedSha256(input1);
-  int expected1[] = { 0xba, 0x78, 0x16, 0xbf, 0x8f, 0x01, 0xcf, 0xea,
-                      0x41, 0x41, 0x40, 0xde, 0x5d, 0xae, 0x22, 0x23 };
-  assert(output1.size() == 16);  // We always use 16 bytes (128 bits)
+  string output1 = TruncatedSha256Prefix(input1, 32);
+  int expected1[] = { 0xba, 0x78, 0x16, 0xbf };
+  assert(output1.size() == 4);  // 4 bytes == 32 bits
   for (int i = 0; i < output1.size(); i++) assert(output1[i] == expected1[i]);
 
   // Example B2 from FIPS-180-2
   string input2 = "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq";
-  string output2 = TruncatedSha256(input2);
-  int expected2[] = { 0x24, 0x8d, 0x6a, 0x61, 0xd2, 0x06, 0x38, 0xb8,
-                      0xe5, 0xc0, 0x26, 0x93, 0x0c, 0x3e, 0x60, 0x39 };
-  assert(output2.size() == 16);
+  string output2 = TruncatedSha256Prefix(input2, 48);
+  int expected2[] = { 0x24, 0x8d, 0x6a, 0x61, 0xd2, 0x06 };
+  assert(output2.size() == 6);
   for (int i = 0; i < output2.size(); i++) assert(output2[i] == expected2[i]);
 
   // Example B3 from FIPS-180-2
   string input3(1000000, 'a');  // 'a' repeated a million times
-  string output3 = TruncatedSha256(input3);
+  string output3 = TruncatedSha256Prefix(input3, 96);
   int expected3[] = { 0xcd, 0xc7, 0x6e, 0x5c, 0x99, 0x14, 0xfb, 0x92,
-                      0x81, 0xa1, 0xc7, 0xe2, 0x84, 0xd7, 0x3e, 0x67 };
-  assert(output3.size() == 16);
+                      0x81, 0xa1, 0xc7, 0xe2 };
+  assert(output3.size() == 12);
   for (int i = 0; i < output3.size(); i++) assert(output3[i] == expected3[i]);
 }}}
 
 
+== 3.7. HTTP Request for Full-Length Hashes ==
+
+A client may request the list of full-length hashes for a hash prefix.  This usually occurs when a client is about to download content from a url who’s calculated hash starts with a prefix listed in a blacklist.  See the Lookup section below for details.
+
+=== 3.7.1. Request's URL ===
+
+The client performs a datarequest by sending an HTTP GET request to the URI:
+{{{
+http://sb.google.com/safebrowsing/gethash?client=CLIENTID&appver=CLIENTVER&pver=PVER&prefix=HASHPREFIX&wrkey=MACKEY
+}}}
+Most CGI parameters are the same as those used in the *HTTP Request for List* (section 3.2 above.)   Additionally, the required *hashprefix* parameter indicates the prefix of the hash being requested.
+
+Formal R-BNF description:
+
+{{{
+CLIENTID  = (LOALPHA | "-")+
+CLIENTVER = DIGIT ["." DIGIT]
+PVER      = DIGIT "." DIGIT
+HASHPRFIX = (ALPHA | DIGIT)+
+MACKEY    = (ALPHA | DIGIT)+
+}}}
+
+Example:
+{{{
+http://sb.google.com/safebrowsing/gethash?client=myapplication&appver=1.5.2&pver=2.0&prefix=ba7816bf
+}}}
+
+Client Behavior:
+
+    * The client MUST specify the *client*, *appver*, *pver* and *prefix* cgi parameters.
+    
+== 3.8. HTTP Response for Full-Length Hashes ==
+
+The server replies using the error code and response body of the HTTP response. No specific HTTP headers is set by the server -- some HTTP headers MAY be present but are not authoritative.
+
+=== 3.8.1. Response Code ===
+
+The server generates the following HTTP error codes:
+
+    * 200: OK -- Data is available in the HTTP response body.
+    * 204: No Content – There are no full-length hashes with the requested prefix.
+    * 400: Bad Request -- The HTTP request was not correctly formed. The client did not provide all required CGI parameters.
+    * 403: Forbidden -- The client id is invalid.
+    * 503: Service Unavailable -- The server cannot handle the request. Clients MUST follow the backoff behavior specified in the Update Frequency section.
+    * 505: HTTP Version Not Supported -- The server CANNOT handle the requested protocol major version.
+
+If there are no hashes starting with the requested prefix the server MUST return HTTP error code 204 and the body of the response MUST contain no data.  This is an expected situation and may occur if a client has not yet downloaded an update to a list that deletes the requested prefix.
+
+=== 3.8.2. Response Body ===
+
+The response body will not be present for codes in 4xx and 5xx nor for response code 204.
+
+When present, the response body contains the following information:
+
+    * The number of hash entries starting with the requested prefix in decimal.
+    * The encoded lists of the remaining bits for each full-length hash.
+
+Formal R-BNF description of the response body:
+
+{{{
+BODY      = COUNT [MAC] LF HASHDATA+ EOF
+HASHCOUNT = DIGIT+                                    # Number of hashes in decimal >= 1
+HASHDATA  = <COUNT number of unsigned bytes>
+MAC       = "," (LOALPHA | DIGIT)+
+}}}
+
+The number of hashes starting with the requested prefix is followed by an optional comma (,) and MAC (see the *MAC* section below) and a required line-feed character (LF, \n).  The remainder of the response body is encoded data representing the remaining bits of the hashes starting with the requested prefix.  See the *Hash Data* section below.
+
+Example:
+{{{
+3
+[encoded hash data]
+}}}
+In this example, there are three (3) full-length hashes starting with the requested hash prefix.
+
+=== 3.8.3. Hash Data ===
+
+When making a request for full-length hashes, the client should remember the requested hash prefix. The length of that prefix should be subtracted from the length of a full-length hash (usually 256) and the result used to separate the encoded data in the body of the reponse into a list of hashes.  Each of these should be appended to the requested hash prefix to form a full-length hash.
 
 = 4. MAC =
 
@@ -542,7 +637,7 @@ http://sb.google.com/safebrowsing/downloads?client=foo&appver=1.5&pver=2.0&wrkey
 The entire response will be protected by a MAC if the *wrkey* parameter is set.  The client can also request a MAC for any individual list by adding the mac keyword after any desired list:
 {{{
 s;200
-goog-phish-sha128;a:1-3,5,8:s:4-5
+goog-phish-sha256;a:1-3,5,8:s:4-5
 acme-white-exp;a:1-7:s:1-2:mac
 }}}
 
@@ -550,7 +645,7 @@ In the response, the full body MAC will be listed first, and any list MACs will 
 {{{
 m:MACOFDATA
 n:1200
-i:goog-phish-sha128
+i:goog-phish-sha256
 u:cache.google.com/redirect_one
 i:acme-white-exp
 u:cache.google.com,FIRST_MAC
@@ -597,7 +692,7 @@ Extract the hostname from the URL and then follow these steps:
     * Remove all leading and trailing dots
     * Replace consecutive dots with a single dot.
     * If the hostname can be parsed as an IP address, it should be normalized to 4 dot-separated decimal values.  The client should handle any legal IP address encoding, including octal, hex, and fewer than 4 components.
-    * Lowercase the whole string. 
+    * Lowercase the whole string.
 
 
 To canonicalize the path:
