@@ -498,15 +498,15 @@ Here's a unit test you can use to validate the key computation (in pseudo-C):
 
 == 3.7. HTTP Request for Full-Length Hashes ==
 
-A client may request the list of full-length hashes for a hash prefix.  This usually occurs when a client is about to download content from a url who’s calculated hash starts with a prefix listed in a blacklist.  See the Lookup section below for details.
+A client may request the list of full-length hashes for a hash prefix.  This usually occurs when a client is about to download content from a url whos calculated hash starts with a prefix listed in a blacklist.  See the Lookup section below for details.
 
 === 3.7.1. Request's URL ===
 
 The client performs a datarequest by sending an HTTP GET request to the URI:
 {{{
-http://sb.google.com/safebrowsing/gethash?client=CLIENTID&appver=CLIENTVER&pver=PVER&prefix=HASHPREFIX&wrkey=MACKEY
+http://sb.google.com/safebrowsing/gethash?client=CLIENTID&appver=CLIENTVER&pver=PVER&wrkey=MACKEY
 }}}
-Most CGI parameters are the same as those used in the *HTTP Request for List* (section 3.2 above.)   Additionally, the required *hashprefix* parameter indicates the prefix of the hash being requested.
+Most CGI parameters are the same as those used in the *HTTP Request for List* (section 3.2 above.)
 
 Formal R-BNF description:
 
@@ -520,12 +520,29 @@ MACKEY    = (ALPHA | DIGIT)+
 
 Example:
 {{{
-http://sb.google.com/safebrowsing/gethash?client=myapplication&appver=1.5.2&pver=2.0&prefix=ba7816bf
+http://sb.google.com/safebrowsing/gethash?client=myapplication&appver=1.5.2&pver=2.0
 }}}
 
 Client Behavior:
 
-    * The client MUST specify the *client*, *appver*, *pver* and *prefix* cgi parameters.
+    * The client MUST specify the *client*, *appver*, and *pver* cgi parameters.
+
+=== 3.7.2. Request's body
+
+The request body specifies the list of hash prefixes for which the client should
+receive full length hashes.
+
+Formal R-BNF description of the request body:
+{{{
+BODY       = HEADER LF PREFIXES EOF
+HEADER     = PREFIXSIZE ":" LENGTH
+PREFIXSIZE = DIGIT+         # Size of each prefix in bytes
+LENGTH     = DIGIT+         # Size of PREFIXES in bytes
+}}}
+
+PREFIXES is a list of PREFIXSIZE values. Note that the server returns the full
+hash for any matching prefixes given in the request. There may be 0 or more
+matches for each prefix given.
     
 == 3.8. HTTP Response for Full-Length Hashes ==
 
@@ -536,7 +553,7 @@ The server replies using the error code and response body of the HTTP response. 
 The server generates the following HTTP error codes:
 
     * 200: OK -- Data is available in the HTTP response body.
-    * 204: No Content – There are no full-length hashes with the requested prefix.
+    * 204: No Content  There are no full-length hashes with the requested prefix.
     * 400: Bad Request -- The HTTP request was not correctly formed. The client did not provide all required CGI parameters.
     * 403: Forbidden -- The client id is invalid.
     * 503: Service Unavailable -- The server cannot handle the request. Clients MUST follow the backoff behavior specified in the Update Frequency section.
@@ -551,25 +568,29 @@ The response body will not be present for codes in 4xx and 5xx nor for response 
 When present, the response body contains the following information:
 
     * The number of hash entries starting with the requested prefix in decimal.
-    * The encoded lists of the remaining bits for each full-length hash.
+    * The matching full-length hashes.
 
 Formal R-BNF description of the response body:
 
 {{{
 BODY      = COUNT [MAC] LF HASHDATA+ EOF
-HASHCOUNT = DIGIT+                                    # Number of hashes in decimal >= 1
+COUNT     = DIGIT+                                    # Number of hashes in decimal >= 1
 HASHDATA  = <COUNT number of unsigned bytes>
 MAC       = "," (LOALPHA | DIGIT)+
 }}}
 
-The number of hashes starting with the requested prefix is followed by an optional comma (,) and MAC (see the *MAC* section below) and a required line-feed character (LF, \n).  The remainder of the response body is encoded data representing the remaining bits of the hashes starting with the requested prefix.  See the *Hash Data* section below.
+The number of hashes starting with the requested prefix is followed by an
+optional comma (,) and MAC (see the *MAC* section below) and a required
+line-feed character (LF, \n). The remainder of the response body is encoded data
+representing the full length hashes starting with the requested prefixes. See
+the *Hash Data* section below.
 
 Example:
 {{{
 3
 [encoded hash data]
 }}}
-In this example, there are three (3) full-length hashes starting with the requested hash prefix.
+In this example, there are three (3) full-length hashes starting with the requested hash prefixes.
 
 === 3.8.3. Hash Data ===
 
