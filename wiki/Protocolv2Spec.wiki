@@ -498,7 +498,7 @@ Here's a unit test you can use to validate the key computation (in pseudo-C):
 
 == 3.7. HTTP Request for Full-Length Hashes ==
 
-A client may request the list of full-length hashes for a hash prefix.  This usually occurs when a client is about to download content from a url whos calculated hash starts with a prefix listed in a blacklist.  See the Lookup section below for details.
+A client may request the list of full-length hashes for a hash prefix.  This usually occurs when a client is about to download content from a url whose calculated hash starts with a prefix listed in a blacklist.  See the Lookup section below for details.
 
 === 3.7.1. Request's URL ===
 
@@ -553,7 +553,7 @@ The server replies using the error code and response body of the HTTP response. 
 The server generates the following HTTP error codes:
 
     * 200: OK -- Data is available in the HTTP response body.
-    * 204: No Content  There are no full-length hashes with the requested prefix.
+    * 204: No Content -- There are no full-length hashes with the requested prefix.
     * 400: Bad Request -- The HTTP request was not correctly formed. The client did not provide all required CGI parameters.
     * 403: Forbidden -- The client id is invalid.
     * 503: Service Unavailable -- The server cannot handle the request. Clients MUST follow the backoff behavior specified in the Update Frequency section.
