@@ -336,7 +336,6 @@ The response doesn't actually have contain the data associated with the lists, i
 
 formal R-BNF description of redirect response:
 {{{
-LISTNAME  = (LOALPHA | DIGIT)+ "-" LOALPHA+ "-" (LOALPHA | DIGIT)+
 LISTDATA  = ADD-HEAD | SUB-HEAD | ADDDEL-HEAD | SUBDEL-HEAD
 ADD-HEAD  = "a:" CHUNKNUM ":" HASHLEN ":" CHUNKLEN LF CHUNKDATA   # Length in bytes in decimal
 SUB-HEAD  = "s:" CHUNKNUM ":" HASHLEN ":" CHUNKLEN LF CHUNKDATA   # Length in bytes in decimal
@@ -369,7 +368,6 @@ sd:2-6
 }}}
 {{{
 contents of first_redirect_example:
-i:goog-phish-sha256
 a:4:48:1200
 [encoded data]
 s:3:96:100
@@ -383,7 +381,6 @@ s:4:16:40
 }}}
 {{{
 contents of second_redirect_example:
-i:acme-white-exp
 a:9:32:320
 [encoded data]
 a:10:64:320
