@@ -427,11 +427,22 @@ For the "exp" list format, the chunk is compressed using zlib. After decompressi
 
 === 3.6.1. sha256 list format ===
 
-For the "sha256" list format, chunk data is not compressed.  But to reduce bandwidth hash prefixes are used.  A hash prefix is some number of the most significant bits of a full-length, 256-bit hash.  The chunk data header indicates the length of the hash prefixes in that chunk.
+For the "sha256" list format, chunk data is not compressed. But to reduce
+bandwidth hash prefixes are used. A hash prefix is some number of the most
+significant bytes of a full-length, 256-bit hash. The chunk data header
+indicates the length of the hash prefixes in that chunk.
 
-For sub chunks, the encoded chunk data is a list entries refering to hash prefixes that were added.  Each entry is a hash prefix of the length specified in the chunk data header followed by a number indicating which add chunk that prefix as added in.
+For add chunks, the encoded chunk data is a list of add host key entries. Each
+add host key consists of a 32-bit hash prefix for a host key (see below)
+followed by a one (1) byte hash prefix count that follows. The hash prefixes are
+of the length specified in the chunk data header. Note that the host key hash
+prefix is always 32-bits. A host key may be repeated (e.g., there are more than
+255 entries for a given host key). There may be no hash prefixes following a
+host key, and in such cases the one byte count will be 0. This has special
+meaning and indicates that all urls under a host should be considered a match.
 
-For add chunks, the encoded chunk data is a list of entries refering to host key information.  Each entry is a 32-bit hash prefix for a host key (see below) followed by a one (1) byte count of hash prefixes that follow.  The following hash prefixes are of the length specified in the chunk data header.  Note that the host key hash prefix is always 32-bits.
+Sub chunks are similar, except that in sub host key entries, each hash prefix is
+preceded by the add chunk number that contained the add expression.
 
 {{{
 ADD-DATA = (HOSTKEY COUNT [PREFIX]*)+
@@ -440,9 +451,22 @@ COUNT    = <1 unsigned byte>
 PREFIX   = <HASHLEN unsigned bytes>
 }}}
 
-There may be no hash prefixes following a host key and in such cases the one byte count will be 0.  This has special meaning and indicates that all urls under a host should be considered a match.
+{{{
+SUB-DATA    = (HOSTKEY COUNT [ADDCHUNKNUM] [ADDCHUNKNUM PREFIX]*)+
+HOSTKEY     = <4 unsigned bytes>                            # 32-bit hash prefix
+COUNT       = <1 unsigned byte>
+ADDCHUNKNUM = <4 byte unsigned integer in network byte order>
+PREFIX      = <HASHLEN unsigned bytes>
+}}}
 
-A host key is made by taking the 32 most significant bits of the SHA256 hash of the three most significant host components if there are three or more components, or two host components if a third does not exist.
+That is, for SUB-DATA, in the case of a COUNT value of 0, only an ADDCHUNKNUM
+will be present following the COUNT, to indicate the add chunk which contained
+the host key. In the case of COUNT >= 1, there will be 1 or more [ADDCHUNKNUM
+PREFIX] pairs.
+
+A host key is made by taking the 32 most significant bits of the SHA256 hash of
+the three most significant host components if there are three or more
+components, or two host components if a third does not exist.
 
 Examples:
 {{{
@@ -450,9 +474,6 @@ google.com -> google.com
 sb.google.com -> sb.google.com
 a.b.c.google.com -> c.google.com
 }}}
-
-Host keys MAY be repeated in a single chunk.  For instance, if there are more than 255 expressions for a particular key.
-
 
 Here are some example of "sha256" hashes, based on the examples from
 [http://csrc.nist.gov/publications/fips/fips180-2/fips180-2withchangenotice.pdf FIPS-180-2]:
@@ -570,28 +591,16 @@ When present, the response body contains the following information:
 Formal R-BNF description of the response body:
 
 {{{
-BODY      = COUNT [MAC] LF HASHDATA+ EOF
-COUNT     = DIGIT+                                    # Number of hashes in decimal >= 1
-HASHDATA  = <COUNT number of unsigned bytes>
+BODY      = [MAC LF] HASHENTRY+ EOF
+HASHENTRY = LISTNAME ":" ADDCHUNKNUM ":" COUNT LF HASHDATA
+COUNT     = DIGIT+                          # Number of hashes in decimal >= 1
+HASHDATA  = <16 * COUNT number of unsigned bytes>  # Full length hashes in binary
 MAC       = "," (LOALPHA | DIGIT)+
 }}}
 
-The number of hashes starting with the requested prefix is followed by an
-optional comma (,) and MAC (see the *MAC* section below) and a required
-line-feed character (LF, \n). The remainder of the response body is encoded data
-representing the full length hashes starting with the requested prefixes. See
-the *Hash Data* section below.
-
-Example:
-{{{
-3
-[encoded hash data]
-}}}
-In this example, there are three (3) full-length hashes starting with the requested hash prefixes.
-
-=== 3.8.3. Hash Data ===
-
-When making a request for full-length hashes, the client should remember the requested hash prefix. The length of that prefix should be subtracted from the length of a full-length hash (usually 256) and the result used to separate the encoded data in the body of the reponse into a list of hashes.  Each of these should be appended to the requested hash prefix to form a full-length hash.
+[MAC LF] is only present if the client requested MACing by sending its wrapped
+key. HASHDATA is grouped with LISTNAME and ADDCHUNKNUM to correlate it with the
+previously received (prefix, LISTNAME, ADDCHUNKNUM).
 
 = 4. MAC =
 
