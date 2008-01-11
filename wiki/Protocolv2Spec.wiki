@@ -460,7 +460,7 @@ PREFIX      = <HASHLEN unsigned bytes>
 }}}
 
 That is, for SUB-DATA, in the case of a COUNT value of 0, only an ADDCHUNKNUM
-will be present following the COUNT, to indicate the add chunk which contained
+will be present following the COUNT, to indicate the add chunk that contained
 the host key. In the case of COUNT >= 1, there will be 1 or more [ADDCHUNKNUM
 PREFIX] pairs.
 
@@ -595,7 +595,7 @@ BODY      = [MAC LF] HASHENTRY+ EOF
 HASHENTRY = LISTNAME ":" ADDCHUNKNUM ":" COUNT LF HASHDATA
 COUNT     = DIGIT+                          # Number of hashes in decimal >= 1
 HASHDATA  = <16 * COUNT number of unsigned bytes>  # Full length hashes in binary
-MAC       = "," (LOALPHA | DIGIT)+
+MAC       = (LOALPHA | DIGIT)+
 }}}
 
 [MAC LF] is only present if the client requested MACing by sending its wrapped
