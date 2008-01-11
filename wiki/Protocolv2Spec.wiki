@@ -5,7 +5,7 @@ Status: DRAFT as of 2007/11/20
 
 Copyright 2007 Google Inc.  All Rights Reserved.
 
-Authors: Garrett Casto, Oliver Fisher, Raphaël Moll, and Marria Nazif
+Authors: Garrett Casto, Oliver Fisher, Raphaël Moll, Marria Nazif, and Dan Born
 
 Notes: The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119.
 
