@@ -35,7 +35,7 @@ Version 2 of the update protocol is designed with the following characteristics:
     * Within each chunk, all hash prefixes are the same length, but different chunks may contain prefixes of different lengths.
 
 
-As with the previous protocol, the new protocol supports many different blacklists or whitelists. List names are in the form "provider-type-format", e.g. "goog-phish-sha256".  Each item in a list will represent an expression that will match a malicious url, but the exact format depends on the list type and how the content is used is application-specific.  Note that the rest of the specification will generally talk about lists in terms of blacklists but the protocol itself is agnostic to the content of the list.  (See the *List Contents* section below for details.)
+As with the previous protocol, the new protocol supports many different blacklists or whitelists. List names are in the form "provider-type-format", e.g. "goog-phish-shavar".  Each item in a list will represent an expression that will match a malicious url, but the exact format depends on the list type and how the content is used is application-specific.  Note that the rest of the specification will generally talk about lists in terms of blacklists but the protocol itself is agnostic to the content of the list.  (See the *List Contents* section below for details.)
 
 The lists are divided into chunks, the smallest unit of data that will be sent to the client. This allows for supporting partial updates to all users, including new users, and allows for more flexibility in choosing which data to send the client.  The actual chunk size is determined by the server.
 
@@ -170,8 +170,8 @@ LISTNAME = (LOALPHA | DIGIT)+ "-" LOALPHA+ "-" (LOALPHA | DIGIT)+
 
 Example:
 {{{
-goog-phish-sha256
-goog-malware-sha256
+goog-phish-shavar
+goog-malware-shavar
 }}}
 
 == 3.4. HTTP Request for Data ==
@@ -236,16 +236,16 @@ We strongly recommend that clients omit the size field unless they have a specia
 
 Example 1:
 {{{
-goog-phish-sha256;a:1-3,5,8:s:4-5
-acme-white-sha256;a:1-7:s:1-2
+goog-phish-shavar;a:1-3,5,8:s:4-5
+acme-white-shavar;a:1-7:s:1-2
 }}}
 In this example, the client requests data for two lists. It then lists the chunks it already has for each list type.
 
 Example 2:
 {{{
 s;200
-goog-phish-sha256;a:1-3,5,8:s:4-5
-acme-white-sha256;a:1-7:s:1-2
+goog-phish-shavar;a:1-3,5,8:s:4-5
+acme-white-shavar;a:1-7:s:1-2
 }}}
 
 In this example, the client requests a response size of 200 kilobytes for the two given lists. It then lists the chunks it already has for each list type.
@@ -253,26 +253,26 @@ In this example, the client requests a response size of 200 kilobytes for the tw
 Note that at first the client has no data so it has no chunk number on its side. Generally speaking if a client does not have any chunks of one type it should not list the corresponding chunk type.
 Example (inline comments start after a # and are not part of the protocol:)
 {{{
-goog-phish-sha256;a:1-5      # The client has 'add' chunks but no 'sub' chunks
+goog-phish-shavar;a:1-5      # The client has 'add' chunks but no 'sub' chunks
 
-acme-malware-sha256;           # The client has no data for this list.
+acme-malware-shavar;           # The client has no data for this list.
 
-acme-white-sha256;mac        # No data here either and it wants a mac
+acme-white-shavar;mac        # No data here either and it wants a mac
 }}}
 
 Examples of good chunk lists:
 {{{
-goog-phish-sha256;a:1-5,10,12:s:3-8
-goog-phish-sha256;a:1,2,3,4,5,10,12,15,16
-goog-phish-sha256;a:1-5,10,12,15-16
-goog-phish-sha256;a:16-10,2-5,4
+goog-phish-shavar;a:1-5,10,12:s:3-8
+goog-phish-shavar;a:1,2,3,4,5,10,12,15,16
+goog-phish-shavar;a:1-5,10,12,15-16
+goog-phish-shavar;a:16-10,2-5,4
 }}}
 
 Examples of bad chunk lists:
 {{{
-goog-phish-sha256              # Missing ; at end of list name
-goog-phish-sha256;5-1,16-10    # Missing 'a:' or 's:' for chunk type
-goog-phish-sha256;a:5-1:s:     # Missing chunk numbers for 's:'
+goog-phish-shavar              # Missing ; at end of list name
+goog-phish-shavar;5-1,16-10    # Missing 'a:' or 's:' for chunk type
+goog-phish-shavar;a:5-1:s:     # Missing chunk numbers for 's:'
 }}}
 
 Server Behavior:
@@ -358,7 +358,7 @@ Chunk types (_add_, _sub_, _adddel_ and _subdel_) can be presented in any order.
 Example:
 {{{
 n:1200
-i:goog-phish-sha256
+i:goog-phish-shavar
 u: cache.google.com/first_redirect_example
 sd:1,2
 i:acme-white-exp
@@ -387,7 +387,7 @@ a:10:64:320
 [encoded data]
 }}}
 
-In this example, there are no _adddel_ chunks for the "goog-phish-sha256" list, and there are no _sub_ chunks for the "acme-white-exp" redirect response.
+In this example, there are no _adddel_ chunks for the "goog-phish-shavar" list, and there are no _sub_ chunks for the "acme-white-exp" redirect response.
 
 Server Behavior:
 
@@ -406,12 +406,12 @@ Client Behavior:
 
 The contents of each chunk depends on the list type that the chunk belongs to. Currently, the possible lists are:
 
-    * *goog-phish-sha256*: a list of hashed suffix/prefix expressions representing sites that should be blocked because they are hosting phishing pages.
-    * *goog-malware-sha256*: a list of suffix/prefix regular expressions representing sites that should be blocked because they are hosting malware pages.
+    * *goog-phish-shavar*: a list of hashed suffix/prefix expressions representing sites that should be blocked because they are hosting phishing pages.
+    * *goog-malware-shavar*: a list of suffix/prefix regular expressions representing sites that should be blocked because they are hosting malware pages.
     * *goog-white-exp*: a list of suffix/prefix regular expressions representing sites that are known to be trusted. Note that this list should only be used for "enhanced mode" clients that do direct lookups to Google to determine which sites are phishy. In that case, if a site is on the whitelist there is no need to send the query to Google.
 
 
-Both the "exp" and "sha256" list types rely on suffix/prefix expressions. Each of the suffix/prefix expressions consists of a host suffix (or full host) and a path prefix (or full path).  Note that the path prefix consists of full path components.  If the expression contains the full path, there may optionally be query parameters appended to the path.
+Both the "exp" and "shavar" list types rely on suffix/prefix expressions. Each of the suffix/prefix expressions consists of a host suffix (or full host) and a path prefix (or full path).  Note that the path prefix consists of full path components.  If the expression contains the full path, there may optionally be query parameters appended to the path.
 
 Examples:
 {{{
@@ -425,9 +425,9 @@ Suffix/prefix regular expression:    c.d/full/path.html?myparam=a
 
 For the "exp" list format, the chunk is compressed using zlib. After decompression, the chunk contains one plaintext suffix/prefix expression per line.
 
-=== 3.6.1. sha256 list format ===
+=== 3.6.1. shavar list format ===
 
-For the "sha256" list format, chunk data is not compressed. But to reduce
+For the "shavar" list format, chunk data is not compressed. But to reduce
 bandwidth hash prefixes are used. A hash prefix is some number of the most
 significant bytes of a full-length, 256-bit hash. The chunk data header
 indicates the length of the hash prefixes in that chunk.
@@ -464,7 +464,7 @@ will be present following the COUNT, to indicate the add chunk that contained
 the host key. In the case of COUNT >= 1, there will be 1 or more [ADDCHUNKNUM
 PREFIX] pairs.
 
-A host key is made by taking the 32 most significant bits of the SHA256 hash of
+A host key is made by taking the 32 most significant bits of the SHAVAR hash of
 the three most significant host components if there are three or more
 components, or two host components if a third does not exist.
 
@@ -475,7 +475,7 @@ sb.google.com -> sb.google.com
 a.b.c.google.com -> c.google.com
 }}}
 
-Here are some example of "sha256" hashes, based on the examples from
+Here are some example of "shavar" hashes, based on the examples from
 [http://csrc.nist.gov/publications/fips/fips180-2/fips180-2withchangenotice.pdf FIPS-180-2]:
 
   * Example B1:
@@ -664,7 +664,7 @@ http://sb.google.com/safebrowsing/downloads?client=foo&appver=1.5&pver=2.0&wrkey
 The entire response will be protected by a MAC if the *wrkey* parameter is set.  The client can also request a MAC for any individual list by adding the mac keyword after any desired list:
 {{{
 s;200
-goog-phish-sha256;a:1-3,5,8:s:4-5
+goog-phish-shavar;a:1-3,5,8:s:4-5
 acme-white-exp;a:1-7:s:1-2:mac
 }}}
 
@@ -672,7 +672,7 @@ In the response, the full body MAC will be listed first, and any list MACs will 
 {{{
 m:MACOFDATA
 n:1200
-i:goog-phish-sha256
+i:goog-phish-shavar
 u:cache.google.com/redirect_one
 i:acme-white-exp
 u:cache.google.com,FIRST_MAC
