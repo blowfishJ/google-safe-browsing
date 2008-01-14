@@ -591,11 +591,12 @@ When present, the response body contains the following information:
 Formal R-BNF description of the response body:
 
 {{{
-BODY      = [MAC LF] HASHENTRY+ EOF
-HASHENTRY = LISTNAME ":" ADDCHUNKNUM ":" COUNT LF HASHDATA
-COUNT     = DIGIT+                          # Number of hashes in decimal >= 1
-HASHDATA  = <16 * COUNT number of unsigned bytes>  # Full length hashes in binary
-MAC       = (LOALPHA | DIGIT)+
+BODY         = [MAC LF] HASHENTRY+ EOF
+HASHENTRY   = LISTNAME ":" ADDCHUNK ":" HASHDATALEN LF HASHDATA
+ADDCHUNK    = DIGIT+                          # Add chunk number
+HASHDATALEN = DIGIT+                          # Length of HASHDATA
+HASHDATA    = <HASHDATALEN number of unsigned bytes>  # Full length hashes in binary
+MAC         = (LOALPHA | DIGIT)+
 }}}
 
 [MAC LF] is only present if the client requested MACing by sending its wrapped
