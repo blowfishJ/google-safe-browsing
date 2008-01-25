@@ -164,8 +164,9 @@ There is no data in the response body for codes in 3xx, 4xx and 5xx.
 The response body may be empty.  When present, the response body contains the name of each list that this client can access.
 Formal R-BNF description of the response body:
 {{{
-BODY     = [MAC LF] (LISTNAME LF)* EOF
+BODY     = ([MAC LF] (LISTNAME LF)*) | (REKEY LF) EOF
 LISTNAME = (LOALPHA | DIGIT)+ "-" LOALPHA+ "-" (LOALPHA | DIGIT)+
+REKEY     = "k: pleaserekey"
 }}}
 
 Example:
@@ -591,7 +592,7 @@ When present, the response body contains the following information:
 Formal R-BNF description of the response body:
 
 {{{
-BODY         = [MAC LF] HASHENTRY+ EOF
+BODY        = ([MAC LF] HASHENTRY+) | (REKEY LF) EOF
 HASHENTRY   = LISTNAME ":" ADDCHUNK ":" HASHDATALEN LF HASHDATA
 ADDCHUNK    = DIGIT+                          # Add chunk number
 HASHDATALEN = DIGIT+                          # Length of HASHDATA
