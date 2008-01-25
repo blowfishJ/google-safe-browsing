@@ -20,7 +20,7 @@ Version 1 of the update protocol is inefficient and not scalable. Caveats of the
     * It does not support partial list updates unless a client has a recent version of the list already fully downloaded. A new client must download the entire list of phishing entries at once or else it will never get any data. As a result, some clients using slow connections take a very long time to download the full list, the request times out, and they never download anything.
     * It sends phishing data to the client in oldest to newest order, which is inefficient for phishing sites since they have a very short lifetime.
     * Expiring old entries requires listing them in updates, which actually consumes bandwidth.
-    * Clients only rarely find a match with a 128-bit blacklisted hash, so sending all the data is somewhat wasteful.
+    * Clients only rarely find a match with a 256-bit blacklisted hash, so sending all the data is somewhat wasteful.
 
 
 = 2. Overview =
