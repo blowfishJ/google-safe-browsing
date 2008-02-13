@@ -166,7 +166,7 @@ Formal R-BNF description of the response body:
 {{{
 BODY     = ([MAC LF] (LISTNAME LF)*) | (REKEY LF) EOF
 LISTNAME = (LOALPHA | DIGIT)+ "-" LOALPHA+ "-" (LOALPHA | DIGIT)+
-REKEY     = "k:pleaserekey"
+REKEY     = "e:pleaserekey"
 }}}
 
 Example:
@@ -319,7 +319,7 @@ Formal R-BNF description of the response body:
 {{{
 BODY      = NEXT LF [REKEY LF] (LIST LF)+ EOF
 NEXT      = "n:" DIGIT+                               # Minimum delay before polling again in seconds
-REKEY     = "k:pleaserekey"
+REKEY     = "e:pleaserekey"
 REDIRECT_URL = "u:" URL [MAC]
 URL       = Defined in RFC 1738
 LIST      = "i:" LISTNAME [MAC] (LF LISTDATA)+
@@ -685,7 +685,7 @@ Boths MACs are HMAC-SHA1 and are websafe base64 encoded. The first MAC is all da
 
 == 4.4. Key Expiration ==
 
-At any time, when a client includes the *wrkey* CGI parameter in a request, the server may prepend "k:pleaserekey" to any response, on a separate line.  This indicates that the client key is no longer valid and that the client should request a new key using the getkey request specified above.
+At any time, when a client includes the *wrkey* CGI parameter in a request, the server may prepend "e:pleaserekey" to any response, on a separate line.  This indicates that the client key is no longer valid and that the client should request a new key using the getkey request specified above.
 
 = 5. Update Frequency =
 
