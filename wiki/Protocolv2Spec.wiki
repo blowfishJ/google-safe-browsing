@@ -533,7 +533,6 @@ Formal R-BNF description:
 CLIENTID  = (LOALPHA | "-")+
 CLIENTVER = DIGIT ["." DIGIT]
 PVER      = DIGIT "." DIGIT
-HASHPRFIX = (ALPHA | DIGIT)+
 MACKEY    = (ALPHA | DIGIT)+
 }}}
 
