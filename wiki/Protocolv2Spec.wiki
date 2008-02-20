@@ -622,7 +622,7 @@ CGI parameters are the same as those used in the HTTP Request for List (section 
 
 Example:
 {{{
-    http://sb.google.com/safebrowsing/getkey?client=myapplication&appver=1.5.2&pver=2.0
+    http://sb.google.com/safebrowsing/newkey?client=myapplication&appver=1.5.2&pver=2.0
 }}}
 
 == 4.2. HTTP Response for Key ==
@@ -684,7 +684,7 @@ Boths MACs are HMAC-SHA1 and are websafe base64 encoded. The first MAC is all da
 
 == 4.4. Key Expiration ==
 
-At any time, when a client includes the *wrkey* CGI parameter in a request, the server may prepend "e:pleaserekey" to any response, on a separate line.  This indicates that the client key is no longer valid and that the client should request a new key using the getkey request specified above.
+At any time, when a client includes the *wrkey* CGI parameter in a request, the server may prepend "e:pleaserekey" to any response, on a separate line.  This indicates that the client key is no longer valid and that the client should request a new key using the newkey request specified above.
 
 = 5. Update Frequency =
 
