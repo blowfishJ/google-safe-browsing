@@ -521,7 +521,7 @@ A client may request the list of full-length hashes for a hash prefix.  This usu
 
 === 3.7.1. Request's URL ===
 
-The client performs a datarequest by sending an HTTP GET request to the URI:
+The client performs a datarequest by sending an HTTP POST request to the URI:
 {{{
 http://sb.google.com/safebrowsing/gethash?client=CLIENTID&appver=CLIENTVER&pver=PVER&wrkey=MACKEY
 }}}
