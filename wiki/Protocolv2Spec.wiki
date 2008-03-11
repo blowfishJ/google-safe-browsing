@@ -317,13 +317,16 @@ When present, the response body contains the following information:
 The body contains both the chunk data (binary blobs) and the metadata describing the chunks. The metadata is line oriented.
 Formal R-BNF description of the response body:
 {{{
-BODY      = NEXT LF [REKEY LF] (LIST LF)+ EOF
+BODY      = [(REKEY | MAC) LF] NEXT LF (RESET | (LIST LF)+) EOF
 NEXT      = "n:" DIGIT+                               # Minimum delay before polling again in seconds
 REKEY     = "e:pleaserekey"
+RESET     = "r:pleasereset"
+LIST      = "i:" LISTNAME [MAC] (LF LISTDATA)+
+LISTNAME  = (LOALPHA | DIGIT | "-")+                  # e.g. "goog-phish-sha128"
+MAC       = "," (LOALPHA | DIGIT)+
+LISTDATA  = ((REDIRECT_URL | ADDDEL-HEAD | SUBDEL-HEAD) LF)+
 REDIRECT_URL = "u:" URL [MAC]
 URL       = Defined in RFC 1738
-LIST      = "i:" LISTNAME [MAC] (LF LISTDATA)+
-MAC       = "," (LOALPHA | DIGIT)+
 ADDDEL-HEAD  = "ad:" CHUNKLIST
 SUBDEL-HEAD  = "sd:" CHUNKLIST
 CHUNKLIST = (RANGE | NUMBER) ["," CHUNKLIST]
@@ -333,11 +336,14 @@ RANGE     = NUMBER "-" NUMBER
 
 Generally speaking lines are in the form "keyword colon parameters". The keyword is limited to one character in this implementation. We reserve the right to use longer keywords later.
 
+A reset response from the server means to clear out all current data in the database
+before requesting again.
+
 The response doesn't actually have contain the data associated with the lists, instead it tells you were the find the data via redirect urls.  These urls should be visited in the order that they are given, and if an error is encountered fetching any of the urls then the client must NOT fetch any url after that.  Parallel fetching is NOT allowed.
 
 formal R-BNF description of redirect response:
 {{{
-LISTDATA  = ADD-HEAD | SUB-HEAD | ADDDEL-HEAD | SUBDEL-HEAD
+BODY      = (ADD-HEAD | SUB-HEAD)+
 ADD-HEAD  = "a:" CHUNKNUM ":" HASHLEN ":" CHUNKLEN LF CHUNKDATA   # Length in bytes in decimal
 SUB-HEAD  = "s:" CHUNKNUM ":" HASHLEN ":" CHUNKLEN LF CHUNKDATA   # Length in bytes in decimal
 CHUNKNUM  = 1*DIGIT                                   # Sequence number of the chunk
