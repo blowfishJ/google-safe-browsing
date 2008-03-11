@@ -114,7 +114,7 @@ Required CGI parameters:
 
     * The *client* parameter indicates the type of client, e.g. "myapplication".
     * The *appver* parameter indicates the version of the client, e.g. "1.5.2".
-    * The *pver* parameter indicates the protocol version that the client supports. Currently this must be "2.0". The format is "major.minor". If we update the protocol, we will make sure that minor revisions are always compatible; however major revision will be incompatible and the server MAY NOT be able to cope with an older protocol.
+    * The *pver* parameter indicates the protocol version that the client supports. Currently this should be "2.1". The format is "major.minor". If we update the protocol, we will make sure that minor revisions are always compatible; however major revision will be incompatible and the server MAY NOT be able to cope with an older protocol.
 
 
 Optional CGI parameters:
@@ -132,7 +132,7 @@ MACKEY    = (ALPHA | DIGIT)+
 
 Example:
 {{{
-http://sb.google.com/safebrowsing/list?client=myapplication&appver=1.5.2&pver=2.0
+http://sb.google.com/safebrowsing/list?client=myapplication&appver=1.5.2&pver=2.1
 }}}
 
 Client Behavior:
@@ -198,7 +198,7 @@ MACKEY    = (ALPHA | DIGIT)+
 
 Example:
 {{{
-http://sb.google.com/safebrowsing/downloads?client=myapplication&appver=1.5.2&pver=2.0
+http://sb.google.com/safebrowsing/downloads?client=myapplication&appver=1.5.2&pver=2.1
 }}}
 
 Client Behavior:
@@ -538,7 +538,7 @@ MACKEY    = (ALPHA | DIGIT)+
 
 Example:
 {{{
-http://sb.google.com/safebrowsing/gethash?client=myapplication&appver=1.5.2&pver=2.0
+http://sb.google.com/safebrowsing/gethash?client=myapplication&appver=1.5.2&pver=2.1
 }}}
 
 Client Behavior:
@@ -622,7 +622,7 @@ CGI parameters are the same as those used in the HTTP Request for List (section 
 
 Example:
 {{{
-    http://sb.google.com/safebrowsing/newkey?client=myapplication&appver=1.5.2&pver=2.0
+    http://sb.google.com/safebrowsing/newkey?client=myapplication&appver=1.5.2&pver=2.1
 }}}
 
 == 4.2. HTTP Response for Key ==
@@ -659,7 +659,7 @@ wrappedkey:24:MTqdJvrixHRGAyfebvaQWYda
 
 The client must include the wrapped key in the request if it wants a MAC. For example, the request will look like this:
 {{{
-http://sb.google.com/safebrowsing/downloads?client=foo&appver=1.5&pver=2.0&wrkey=123
+http://sb.google.com/safebrowsing/downloads?client=foo&appver=1.5&pver=2.1&wrkey=123
 }}}
 
 The entire response will be protected by a MAC if the *wrkey* parameter is set.  The client can also request a MAC for any individual list by adding the mac keyword after any desired list:
