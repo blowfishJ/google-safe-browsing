@@ -339,7 +339,7 @@ Generally speaking lines are in the form "keyword colon parameters". The keyword
 A reset response from the server means to clear out all current data in the database
 before requesting again.
 
-The response doesn't actually have contain the data associated with the lists, instead it tells you were the find the data via redirect urls.  These urls should be visited in the order that they are given, and if an error is encountered fetching any of the urls then the client must NOT fetch any url after that.  Parallel fetching is NOT allowed.
+The response doesn't actually have contain the data associated with the lists, instead it tells you were the find the data via redirect urls.  These urls should be visited in the order that they are given, and if an error is encountered fetching any of the urls then the client must NOT fetch any url after that.  Parallel fetching is NOT allowed.  If a redirect request returns an error code, the client MUST perform backoff behavior as indicated in the *Update Frequency* section.  A client MUST perform a download request again if a request request returns an error.  The client SHOULD keep all data delivered prior to the bad request.
 
 formal R-BNF description of redirect response:
 {{{
@@ -697,7 +697,7 @@ At any time, when a client includes the *wrkey* CGI parameter in a request, the 
  Providing the data on the server for updates and lookups requires a fair amount of resources. To help maintain a high quality of service, it may be necessary for the download servers to ask the client to make more or less frequent requests. To handle this, two mechanisms are available:
 
     * In its response, the server gives an _update_ _interval_, i.e. the delay in seconds before the next connection attempt should occur.
-    * The client watches for HTTP timeouts or errors (i.e. HTTP response code 5xx) from the server and if too many errors occur, it increases in the time between requests.
+    * The client watches for HTTP timeouts or errors (i.e. HTTP response code 4xx or 5xx) from the server and if too many errors occur, it increases in the time between requests.  For example, a request returning an error code may be repeated 3 times in 3 minutes, and then not again for an hour.
 
 
 Client Behavior:
