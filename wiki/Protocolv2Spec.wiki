@@ -107,7 +107,7 @@ This is used by clients to discover the available list types.
 
 The client performs a request by sending an HTTP POST request to the URI:
 {{{
-http://sb.google.com/safebrowsing/list?client=CLIENTID&appver=CLIENTVER&pver=PVER&wrkey=MACKEY
+http://safebrowsing.clients.google.com/safebrowsing/list?client=CLIENTID&appver=CLIENTVER&pver=PVER&wrkey=MACKEY
 }}}
 
 Required CGI parameters:
@@ -132,7 +132,7 @@ MACKEY    = (ALPHA | DIGIT)+
 
 Example:
 {{{
-http://sb.google.com/safebrowsing/list?client=myapplication&appver=1.5.2&pver=2.1
+http://safebrowsing.clients.google.com/safebrowsing/list?client=myapplication&appver=1.5.2&pver=2.1
 }}}
 
 Client Behavior:
@@ -183,7 +183,7 @@ This is used by clients who want to get new data for known list types.
 
 The client performs a datarequest by sending an HTTP POST request to the URI:
 {{{
-http://sb.google.com/safebrowsing/downloads?client=CLIENTID&appver=CLIENTVER&pver=PVER&wrkey=MACKEY
+http://safebrowsing.clients.google.com/safebrowsing/downloads?client=CLIENTID&appver=CLIENTVER&pver=PVER&wrkey=MACKEY
 }}}
 
 CGI parameters are the same as those used in the HTTP Request for List (section 3.2 above.)
@@ -198,7 +198,7 @@ MACKEY    = (ALPHA | DIGIT)+
 
 Example:
 {{{
-http://sb.google.com/safebrowsing/downloads?client=myapplication&appver=1.5.2&pver=2.1
+http://safebrowsing.clients.google.com/safebrowsing/downloads?client=myapplication&appver=1.5.2&pver=2.1
 }}}
 
 Client Behavior:
@@ -665,7 +665,7 @@ wrappedkey:24:MTqdJvrixHRGAyfebvaQWYda
 
 The client must include the wrapped key in the request if it wants a MAC. For example, the request will look like this:
 {{{
-http://sb.google.com/safebrowsing/downloads?client=foo&appver=1.5&pver=2.1&wrkey=123
+http://safebrowsing.clients.google.com/safebrowsing/downloads?client=foo&appver=1.5&pver=2.1&wrkey=123
 }}}
 
 The entire response will be protected by a MAC if the *wrkey* parameter is set.  The client can also request a MAC for any individual list by adding the mac keyword after any desired list:
