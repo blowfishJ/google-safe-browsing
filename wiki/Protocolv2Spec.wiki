@@ -529,7 +529,7 @@ A client may request the list of full-length hashes for a hash prefix.  This usu
 
 The client performs a datarequest by sending an HTTP POST request to the URI:
 {{{
-http://sb.google.com/safebrowsing/gethash?client=CLIENTID&appver=CLIENTVER&pver=PVER&wrkey=MACKEY
+http://safebrowsing.clients.google.com/safebrowsing/gethash?client=CLIENTID&appver=CLIENTVER&pver=PVER&wrkey=MACKEY
 }}}
 Most CGI parameters are the same as those used in the *HTTP Request for List* (section 3.2 above.)
 
@@ -544,14 +544,14 @@ MACKEY    = (ALPHA | DIGIT)+
 
 Example:
 {{{
-http://sb.google.com/safebrowsing/gethash?client=myapplication&appver=1.5.2&pver=2.1
+http://safebrowsing.clients.google.com/safebrowsing/gethash?client=myapplication&appver=1.5.2&pver=2.1
 }}}
 
 Client Behavior:
 
     * The client MUST specify the *client*, *appver*, and *pver* cgi parameters.
 
-=== 3.7.2. Request's body
+=== 3.7.2. Request's body ===
 
 The request body specifies the list of hash prefixes for which the client should
 receive full length hashes.
@@ -621,14 +621,14 @@ In order to receive a MAC, the client must request a key from the server over a 
 
 The client performs a request by sending an HTTP GET request to the URI:
 {{{
-http://sb.google.com/safebrowsing/newkey?client=CLIENTID&appver=CLIENTVER&pver=PVER
+https://sb-ssl.google.com/safebrowsing/newkey?client=CLIENTID&appver=CLIENTVER&pver=PVER
 }}}
 
 CGI parameters are the same as those used in the HTTP Request for List (section 3.2 above.)
 
 Example:
 {{{
-    http://sb.google.com/safebrowsing/newkey?client=myapplication&appver=1.5.2&pver=2.1
+https://sb-ssl.google.com/safebrowsing/newkey?client=myapplication&appver=1.5.2&pver=2.1
 }}}
 
 == 4.2. HTTP Response for Key ==
