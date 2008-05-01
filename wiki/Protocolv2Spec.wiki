@@ -697,7 +697,7 @@ At any time, when a client includes the *wrkey* CGI parameter in a request, the 
  Providing the data on the server for updates and lookups requires a fair amount of resources. To help maintain a high quality of service, it may be necessary for the download servers to ask the client to make more or less frequent requests. To handle this, two mechanisms are available:
 
     * In its response, the server gives an _update_ _interval_, i.e. the delay in seconds before the next connection attempt should occur.
-    * The client watches for HTTP timeouts or errors (i.e. HTTP response code 4xx or 5xx) from the server and if too many errors occur, it increases in the time between requests.  For example, a request returning an error code may be repeated 3 times in 3 minutes, and then not again for an hour.
+    * The client watches for timeouts or HTTP errors (specifically HTTP response code 3xx, 4xx or 5xx) from the server and if too many errors occur, it increases in the time between requests.  For example, a request returning an error code may be repeated 2 times in 2 minutes, and then not again for an 30-60 minutes.
 
 
 Client Behavior:
@@ -705,9 +705,12 @@ Client Behavior:
     * The first update request MUST happen at a random interval between 0 and 5 minutes after the browser starts.
     * The second update request MUST happen at the update interval last specified by the server. If this value is unknown, the request MUST happen between 15 and 45 minutes later.
     * After that, each update MUST happen at the update interval last specified by the server.
-    * If the client receives an error during update, it MUST try again in at least one minute.
-    * If it receives three errors in a row, it MUST skip updates until at least 60 minutes have passed before trying again.
-    * If it then receives another (4th) error, it MUST skip updates for the next 180 minutes and if it receives another (5th) error, it MUST skip updates for the next 360 minutes. It SHOULD continue to check once every 360 minutes until the server responds with a success message.
+    * If the client receives an error during update, it MUST try again in one minute.
+    * If it receives two errors in a row, it MUST continue to skip updates for a period of time defined by the following formula: {{{ 30mins * (rand + 1) }}}, where rand is a random number between 0 and 1.  Thus, depending on the value of rand, the client will skip updates for 30-60 minutes.
+    * If it receives another (3rd) error, it MUST skip updates for double the length of time.  Thus, depending on the value of rand, the client will skip updates for 60-120 minutes.
+    * If it receives another (4th) error, it MUST skip updates for double the length of time.  Thus, depending on the value of rand, the client will skip updates for 120-240 minutes.
+    * If it then receives another (5th) error, it MUST skip updates for double the length of time.  Thus, depending on the value of rand, the client will skip updates for 240-480 minutes.
+    * For every error after that, it SHOULD continue to check once every 480 minutes until the server responds with a success message.
     * Once the client receives successful HTTP replies, the error stats are reset.
 
 = 6. Performing Lookups =
