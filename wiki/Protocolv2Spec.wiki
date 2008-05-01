@@ -692,9 +692,13 @@ Boths MACs are HMAC-SHA1 and are websafe base64 encoded. The first MAC is all da
 
 At any time, when a client includes the *wrkey* CGI parameter in a request, the server may prepend "e:pleaserekey" to any response, on a separate line.  This indicates that the client key is no longer valid and that the client should request a new key using the newkey request specified above.
 
-= 5. Update Frequency =
+= 5. Request Frequency =
 
- Providing the data on the server for updates and lookups requires a fair amount of resources. To help maintain a high quality of service, it may be necessary for the download servers to ask the client to make more or less frequent requests. To handle this, two mechanisms are available:
+ Providing the data on the server for updates and lookups requires a fair amount of resources. To help maintain a high quality of service, it may be necessary for the download servers to ask the client to make more or less frequent requests.  This is handled differently depending on the type of request.
+
+== 5.1 HTTP Request for Data ==
+
+When requesting a download of data from the server, there are two mechanisms are available to control request frequency:
 
     * In its response, the server gives an _update_ _interval_, i.e. the delay in seconds before the next connection attempt should occur.
     * The client watches for timeouts or HTTP errors (specifically HTTP response code 3xx, 4xx or 5xx) from the server and if too many errors occur, it increases in the time between requests.  For example, a request returning an error code may be repeated 2 times in 2 minutes, and then not again for an 30-60 minutes.
@@ -705,6 +709,9 @@ Client Behavior:
     * The first update request MUST happen at a random interval between 0 and 5 minutes after the browser starts.
     * The second update request MUST happen at the update interval last specified by the server. If this value is unknown, the request MUST happen between 15 and 45 minutes later.
     * After that, each update MUST happen at the update interval last specified by the server.
+
+Client Behavior on error or timeout:
+
     * If the client receives an error during update, it MUST try again in one minute.
     * If it receives two errors in a row, it MUST continue to skip updates for a period of time defined by the following formula: {{{ 30mins * (rand + 1) }}}, where rand is a random number between 0 and 1.  Thus, depending on the value of rand, the client will skip updates for 30-60 minutes.
     * If it receives another (3rd) error, it MUST skip updates for double the length of time.  Thus, depending on the value of rand, the client will skip updates for 60-120 minutes.
@@ -712,6 +719,15 @@ Client Behavior:
     * If it then receives another (5th) error, it MUST skip updates for double the length of time.  Thus, depending on the value of rand, the client will skip updates for 240-480 minutes.
     * For every error after that, it SHOULD continue to check once every 480 minutes until the server responds with a success message.
     * Once the client receives successful HTTP replies, the error stats are reset.
+
+== 5.2 HTTP Request for Full-Length Hashes ==
+
+When requesting a full-length hash from the server, if the client successfully receives a response, it should be cached for the length of time that the hash prefix is a valid entry in the list.
+
+When the client receives an error or timeout, it has two choices that it may choose between to control update frequency:
+
+    * The first option is to follow the same "Client Behavior on error or timeout" in section 5.1.  That is, all gethash requests should be skipped for the length of time specified in 5.1, extending with each additional error as specified.
+    *  The second option is to track errors separately by unique hash prefix.  That is, only gethash requests for that particular hash prefix should be skipped for the length of time specified in 5.1, extending with each additional error as specified.
 
 = 6. Performing Lookups =
 
