@@ -609,6 +609,8 @@ MAC         = (LOALPHA | DIGIT)+
 key. HASHDATA is grouped with LISTNAME and ADDCHUNKNUM to correlate it with the
 previously received (prefix, LISTNAME, ADDCHUNKNUM).
 
+The response for each hash prefix MUST be cached by the client for as long as the hash prefix is a valid entry in the list.
+
 = 4. MAC =
 
 We support a Message Authentication Code in this protocol, similar to the old protocol.
@@ -722,7 +724,7 @@ Client Behavior on error or timeout:
 
 == 5.2 HTTP Request for Full-Length Hashes ==
 
-When requesting a full-length hash from the server, if the client successfully receives a response, it should be cached for the length of time that the hash prefix is a valid entry in the list.
+When requesting a full-length hash from the server, if the client successfully receives a response, it MUST cache it for the length of time that the hash prefix is a valid entry in the list.
 
 When the client receives an error or timeout, it has two choices that it may choose between to control update frequency:
 
