@@ -346,9 +346,9 @@ formal R-BNF description of redirect response:
 BODY      = (ADD-HEAD | SUB-HEAD)+
 ADD-HEAD  = "a:" CHUNKNUM ":" HASHLEN ":" CHUNKLEN LF CHUNKDATA   # Length in bytes in decimal
 SUB-HEAD  = "s:" CHUNKNUM ":" HASHLEN ":" CHUNKLEN LF CHUNKDATA   # Length in bytes in decimal
-CHUNKNUM  = 1*DIGIT                                   # Sequence number of the chunk
-HASHLEN   = 1*DIGIT                                                                      # Decimal length of each hash prefix in bytes
-CHUNKLEN  = 1*DIGIT                                   # Size of the chunk data in bytes >= 1
+CHUNKNUM  = DIGIT+                                   # Sequence number of the chunk
+HASHLEN   = DIGIT+                                   # Decimal length of each hash prefix in bytes
+CHUNKLEN  = DIGIT+                                   # Size of the chunk data in bytes >= 1
 CHUNKDATA = <CHUNKLEN number of unsigned bytes>
 }}}
 
