@@ -1,7 +1,7 @@
 #summary Client specification for the Google Safe Browsing v2 protocol
 #labels Featured,Phase-Implementation
 
-Status: DRAFT as of 2007/11/20
+Status: DRAFT as of 2007/11/20. *This specification is not yet for general use. Do not use this protocol without explicit written permission from Google.*
 
 Copyright 2007 Google Inc.  All Rights Reserved.
 
