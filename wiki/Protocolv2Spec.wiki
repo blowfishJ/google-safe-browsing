@@ -23,6 +23,7 @@ Version 1 of the update protocol is inefficient and not scalable. Caveats of the
     * Clients only rarely find a match with a 256-bit blacklisted hash, so sending all the data is somewhat wasteful.
 
 
+*Note:* This is not a license to use the defined protocol. This is merely a description of the protocol.
 = 2. Overview =
 
 Version 2 of the update protocol is designed with the following characteristics:
@@ -804,6 +805,15 @@ f.g/1.html
 f.g/
 }}}
 
+
+== 6.3. Age of Data, Usage ==
+Applications retrieving data using the API must be certain never to use data older than 45 minutes. What this means specifically is that a warning can be shown only in the following 3 scenarios:
+
+    * A URL matches a full-length hash obtained in an add chunk returned as a response to an HTTP Request for Data, provided that such hash has not been removed from the list (e.g. via a sub chunk), and further provided that the list has been successfully updated via an HTTP Request for Data (where the entire update was successfully processed) within the past 45 minutes from the time a warning is to be provided, or
+    * A URL matches a full length hash obtained in a response to an HTTP Request for Full Length Hashes, provided that the prefix of the matching full length hash has not been removed from the list (e.g. via a sub chunk), and further provided that the list has been successfully updated via an HTTP Request for Data (where the entire update was successfully processed) within the past 45 minutes from the time a warning is to be provided, or
+    * A URL matches a full length hash obtained in a response to an HTTP Request for Full Length Hashes made within the past 45 minutes from the time a warning is to be provided, provided that such a hash has not been subsequently removed from the list (e.g. via a sub chunk)  
+
+Under no other circumstances may a warning be shown.
 = 7. References =
     * [http://www.ietf.org/rfc/rfc2119.txt RFC 2119] -- Keywords for use in RFCs.
     * [http://www.ietf.org/rfc/rfc2616.txt RFC 2616] -- Hypertext transfer Protocol HTTP/1.1.
