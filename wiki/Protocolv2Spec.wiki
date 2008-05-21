@@ -526,6 +526,8 @@ Here's a unit test you can use to validate the key computation (in pseudo-C):
 
 A client may request the list of full-length hashes for a hash prefix.  This usually occurs when a client is about to download content from a url whose calculated hash starts with a prefix listed in a blacklist.  See the Lookup section below for details.
 
+The client MUST not make this request if it received the full length hashes in a previous request, for each list and chunk that the prefix occurs in.  See 6.3 for some exceptions to this.
+
 === 3.7.1. Request's URL ===
 
 The client performs a datarequest by sending an HTTP POST request to the URI:
@@ -610,7 +612,7 @@ MAC         = (LOALPHA | DIGIT)+
 key. HASHDATA is grouped with LISTNAME and ADDCHUNKNUM to correlate it with the
 previously received (prefix, LISTNAME, ADDCHUNKNUM).
 
-The response for each hash prefix MUST be cached by the client for as long as the hash prefix is a valid entry in the list.
+Each hash in the response MUST be stored as the full length hash for the prefix in the list and chunk indicated in the response, for the length of time that the hash prefix is a valid entry in the chunk.  The full length hash should always be used when performing lookups instead of the prefix, when it is available.  Thus, the client MUST not make any further full length hash requests for that hash, except in the cases outlined in 6.3.
 
 = 4. MAC =
 
@@ -725,7 +727,7 @@ Client Behavior on error or timeout:
 
 == 5.2 HTTP Request for Full-Length Hashes ==
 
-When requesting a full-length hash from the server, if the client successfully receives a response, it MUST cache it for the length of time that the hash prefix is a valid entry in the list.
+When requesting a full-length hash from the server, if the client successfully receives a response, it MUST be stored as the full length hash for the prefix in the list and chunk indicated in the response, for the length of time that the hash prefix is a valid entry in the chunk.  The full length hash should always be used when performing lookups instead of the prefix, when it is available.  Thus, the client MUST not make any further full length hash requests for that hash, except in the cases outlined in 6.3.
 
 When the client receives an error or timeout, it has two choices that it may choose between to control update frequency:
 
