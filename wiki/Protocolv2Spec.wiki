@@ -1,4 +1,4 @@
-#summary Client specification for the Google Safe Browsing v2 protocol
+#summary Client specification for the Google Safe Browsing v2.1 protocol
 #labels Featured,Phase-Implementation
 
 Status: DRAFT as of 2007/11/20. *This specification is not yet for general use. Do not use this protocol without explicit written permission from Google.*
@@ -11,7 +11,7 @@ Notes: The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOU
 
 = 1. Background =
 
-Google provides data for the anti-phishing feature implemented in Firefox 2 and Google Desktop. These clients get their blacklist and whitelist data using an "update protocol".  A new protocol, version 2, is designed to address some shortcomings of the previous protocol and is described in this specification.
+Google provides data for the anti-phishing feature implemented in Firefox 2 and Google Desktop. These clients get their blacklist and whitelist data using an "update protocol".  A new protocol, version 2.1, is designed to address some shortcomings of the previous protocol and is described in this specification.
 
 _Note_: This document assumes the reader is familiar with the anti-phishing service. For an overview of the phishing protection in Firefox, see the [http://wiki.mozilla.org/Phishing_Protection:_Design_Documentation design doc on Mozilla.org]. However readers need not be familiar with the details of the version 1 of the protocol to understand the second version.
 
