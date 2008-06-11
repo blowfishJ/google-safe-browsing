@@ -474,7 +474,14 @@ PREFIX] pairs.
 
 A host key is made by taking the 32 most significant bits of the SHAVAR hash of
 the three most significant host components if there are three or more
-components, or two host components if a third does not exist.
+components in the blacklist entry, or two host components if a third does not exist.
+To be clear, to match a URL against a host key, a client must try matching based
+upon the two most significant host components, and also the three most significant
+host components if three such components exist.
+
+An exception to the above exists when the host is an IP address. Here, we form the
+host key by taking the SHAVAR hash of the entire host (IP address), NOT two or three
+octets of the IP address.
 
 Examples:
 {{{
