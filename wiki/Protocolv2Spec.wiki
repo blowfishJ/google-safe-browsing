@@ -736,10 +736,16 @@ Client Behavior on error or timeout:
 
 When requesting a full-length hash from the server, if the client successfully receives a response, it MUST be stored as the full length hash for the prefix in the list and chunk indicated in the response, for the length of time that the hash prefix is a valid entry in the chunk.  The full length hash should always be used when performing lookups instead of the prefix, when it is available.  Thus, the client MUST not make any further full length hash requests for that hash.
 
-When the client receives an error or timeout, it has two choices that it may choose between to control update frequency:
+Client behavior on error or timeout:
 
-    * The first option is to follow the same "Client Behavior on error or timeout" in section 5.1.  That is, all gethash requests should be skipped for the length of time specified in 5.1, extending with each additional error as specified.
-    *  The second option is to track errors separately by unique hash prefix.  That is, only gethash requests for that particular hash prefix should be skipped for the length of time specified in 5.1, extending with each additional error as specified.
+    * If a client receives 2 errors within 5 minutes, it enters backoff mode.
+    * After this point, if the client receives one non-error response, or the last error occurred at least 8 hours ago, it exits backoff mode.
+    * While in backoff mode, the client MUST not ping for at least a certain amount of time from the last error.  This time changes exponentially until a max of 2 hours.
+    * When the client receives the first error, it MUST not ping for at least 30 minutes from the last error.
+    * If it receives another error, the client MUST not ping for at least 1 hour.
+    * If it receives another error, the client MUST not ping for at least 2 hours.
+    * After that, the client MUST wait at least 2 hours between pings.
+    * The client has two options for the granularity of error tracking.  The first option is to treat any error during a request for a full length hash equally, triggering backoff mode as specified above.  The second option is to track errors separately by unique hash prefix.  That is, only gethash requests for that particular hash prefix should be skipped for the length of time specified above, extending with each additional error as specified.
 
 = 6. Performing Lookups =
 
