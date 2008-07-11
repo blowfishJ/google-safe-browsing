@@ -340,7 +340,7 @@ Generally speaking lines are in the form "keyword colon parameters". The keyword
 A reset response from the server means to clear out all current data in the database
 before requesting again.
 
-The response doesn't actually contain the data associated with the lists, instead it tells you were the find the data via redirect urls.  These urls should be visited in the order that they are given, and if an error is encountered fetching any of the urls then the client must NOT fetch any url after that.  Parallel fetching is NOT allowed.  If a redirect request returns an error code, the client MUST perform backoff behavior as indicated in the *Request Frequency* section.  A client MUST perform a download request again if a request request returns an error.  The client SHOULD keep all data delivered prior to the bad request.
+The response doesn't actually contain the data associated with the lists, instead it tells you were the find the data via redirect urls.  These urls should be visited in the order that they are given, and if an error is encountered fetching any of the urls then the client must NOT fetch any url after that.  Parallel fetching is NOT allowed.  If a redirect request returns an error code, the client MUST perform backoff behavior as indicated in the *Request Frequency* section.  A client MUST perform a download request again if a redirect request returns an error.  The client SHOULD keep all data delivered prior to the bad request.
 
 formal R-BNF description of redirect response:
 {{{
