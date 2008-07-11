@@ -590,7 +590,7 @@ The server generates the following HTTP error codes:
     * 204: No Content -- There are no full-length hashes with the requested prefix.
     * 400: Bad Request -- The HTTP request was not correctly formed. The client did not provide all required CGI parameters.
     * 403: Forbidden -- The client id is invalid.
-    * 503: Service Unavailable -- The server cannot handle the request. Clients MUST follow the backoff behavior specified in the Request Frequency section.
+    * 503: Service Unavailable -- The server cannot handle the request. Clients MUST follow the backoff behavior specified in the *Request Frequency* section.
     * 505: HTTP Version Not Supported -- The server CANNOT handle the requested protocol major version.
 
 If there are no hashes starting with the requested prefix the server MUST return HTTP error code 204 and the body of the response MUST contain no data.  This is an expected situation and may occur if a client has not yet downloaded an update to a list that deletes the requested prefix.
