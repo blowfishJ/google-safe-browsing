@@ -367,10 +367,10 @@ Example:
 {{{
 n:1200
 i:goog-phish-shavar
-u: cache.google.com/first_redirect_example
+u:cache.google.com/first_redirect_example
 sd:1,2
 i:acme-white-exp
-u: cache.google.com/second_redirect_example
+u:cache.google.com/second_redirect_example
 ad:1-2,4-5,7
 sd:2-6
 }}}
