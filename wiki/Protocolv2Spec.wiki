@@ -619,7 +619,7 @@ MAC         = (LOALPHA | DIGIT)+
 key. HASHDATA is grouped with LISTNAME and ADDCHUNKNUM to correlate it with the
 previously received (prefix, LISTNAME, ADDCHUNKNUM).
 
-Each hash in the response MUST be stored as the full length hash for the prefix in the list and chunk indicated in the response, for the length of time that the hash prefix is a valid entry in the chunk.  The full length hash should always be used when performing lookups instead of the prefix, when it is available.  Thus, the client MUST not make any further full length hash requests for that hash.
+Each hash in the response MUST be stored as the full length hash for the prefix in the list and chunk indicated in the response, for the length of time that the hash prefix is a valid entry in the chunk.  The full length hash should always be used when performing lookups instead of the prefix, when it is available.  Thus, the client MUST not make any further full length hash requests for that hash, unless a client is following the timing requirements set forth in Section 5.1 and would be unable to issue a warning due to timing constraints in Section 6.3 (e.g. the client has just been launched within the past 5 minutes and so has not yet done a list update, or the list is more than 45 minutes out of date because the client has been backed off and is following the update frequency requested by the server.)
 
 = 4. MAC =
 
