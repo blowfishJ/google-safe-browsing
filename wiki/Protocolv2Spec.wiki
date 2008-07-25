@@ -472,9 +472,7 @@ will be present following the COUNT, to indicate the add chunk that contained
 the host key. In the case of COUNT >= 1, there will be 1 or more [ADDCHUNKNUM
 PREFIX] pairs.
 
-A host key is made by taking the 32 most significant bits of the SHAVAR hash of
-the three most significant host components if there are three or more
-components in the blacklist entry, or two host components if a third does not exist.
+To form a host key, first take the three most significant host components if there are three or more components in the blacklist entry, or two host components if a third does not exist.  Append a trailing slash (/) to this string, then use the 32 most significant bits of the string's SHAVAR hash as the host key.
 To be clear, to match a URL against a host key, a client must try matching based
 upon the two most significant host components, and also the three most significant
 host components if three such components exist.
@@ -483,11 +481,11 @@ An exception to the above exists when the host is an IP address. Here, we form t
 host key by taking the SHAVAR hash of the entire host (IP address), NOT two or three
 octets of the IP address.
 
-Examples:
+Examples (blacklist entry -> host key, before hashing):
 {{{
-google.com -> google.com
-sb.google.com -> sb.google.com
-a.b.c.google.com -> c.google.com
+google.com/ -> google.com/
+sb.google.com/abc/ -> sb.google.com/
+a.b.c.google.com/123/ -> c.google.com/
 }}}
 
 Here are some example of "shavar" hashes, based on the examples from
