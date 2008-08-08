@@ -340,7 +340,7 @@ Generally speaking lines are in the form "keyword colon parameters". The keyword
 A reset response from the server means to clear out all current data in the database
 before requesting again.
 
-The response doesn't actually contain the data associated with the lists, instead it tells you were the find the data via redirect urls.  These urls should be visited in the order that they are given, and if an error is encountered fetching any of the urls then the client must NOT fetch any url after that.  Parallel fetching is NOT allowed.  If a redirect request returns an error code, the client MUST perform backoff behavior as indicated in the *Request Frequency* section.  A client MUST perform a download request again if a redirect request returns an error.  The client SHOULD keep all data delivered prior to the bad request.
+The response doesn't actually contain the data associated with the lists, instead it tells you were the find the data via redirect urls.  These urls should be visited in the order that they are given, and if an error is encountered fetching any of the urls then the client must NOT fetch any url after that.  Parallel fetching is NOT allowed.
 
 formal R-BNF description of redirect response:
 {{{
@@ -407,6 +407,9 @@ Client Behavior:
     * The client MUST respect the "_next_" value and not contact the server again until the specified delay has expired. See the *Request Frequency* section below for more information on how often the server can be contacted after replying with an HTTP error code.
     * The client MUST ignore a line starting with a keyword that it doesn't understand.
 
+    * If a redirect request returns an error code, the client MUST perform backoff behavior as indicated in the *Request Frequency* section.
+    * A client MUST perform a download request again if a redirect request returns an error.
+    * The client SHOULD keep all data delivered prior to a bad request.
     * The client MUST refuse to use the whole response if any of the _add_, _sub_, _adddel_ and _subdel_ metadata headers or the binary data cannot be parsed successfully.
     * Upon successful decoding of all the response and all the binary data, the client MUST update its lists in an atomic fashion.
 
