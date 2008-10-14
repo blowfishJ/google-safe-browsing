@@ -337,6 +337,8 @@ RANGE     = NUMBER "-" NUMBER
 
 Generally speaking lines are in the form "keyword colon parameters". The keyword is limited to one character in this implementation. We reserve the right to use longer keywords later.
 
+Redirect urls may contain the ':' or ',' separators.  Clients should be careful when parsing these lines, and take any text after the first colon, up to the last comma (if the mac was requested) or the end of the line (if not), as the redirect url.  Clients should not depend on the format of the redirect url, these may change at any time.
+
 A reset response from the server means to clear out all current data in the database
 before requesting again.
 
