@@ -818,7 +818,7 @@ Currently all valid list types rely on suffix/prefix expressions, as described i
 For the hostname, the client will try at most 5 different strings. They are:
 
     * the exact hostname in the url
-    * up to 4 hostnames formed by starting with the last 5 components and successively removing the leading component.  The top-level domain can be skipped.
+    * up to 4 hostnames formed by starting with the last 5 components and successively removing the leading component.  The top-level domain can be skipped.  These additional hostnames should not be checked if the host is an IP address.
 
 
 For the path, the client will also try at most 6 different strings. They are:
@@ -857,6 +857,11 @@ f.g/1.html
 f.g/
 }}}
 
+For the url http://1.2.3.4/1/, the client will try these possible strings:
+{{{
+1.2.3.4/1/
+1.2.3.4/
+}}}
 
 == 6.3. Age of Data, Usage ==
 Applications retrieving data using the API must be certain never to use data older than 45 minutes. What this means specifically is that a warning can be shown only in the following 3 scenarios:
