@@ -772,7 +772,7 @@ To canonicalize the path:
     * Runs of consecutive slashes should be replaced with a single slash character.
 
 
-After performing these steps, percent-escape all characters in the URL which are <= ASCII 32, >= 127, or "%". The escapes should use uppercase hex characters.
+After performing these steps, percent-escape all characters in the URL which are <= ASCII 32, >= 127, "#", or "%". The escapes should use uppercase hex characters.
 
 Below is a set of tests that will help validate a canonicalization implementation.
 
