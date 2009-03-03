@@ -754,7 +754,11 @@ Before lookup in any list, the url must be canonicalized.
 
 We assume that the client has parsed the URL and made it valid according to RFC 2396.  If it's an international url, use the ascii punycode representation.  The URL must include a path component, e.g. 'http://google.com/' must have a trailing slash.
 
-To start, repeatedly URL-unescape the URL until it has no more hex-encodings.
+To start, remove any tab (0x09), CR (0x0d), and LF (0x0a) characters from the URL.  Note that escape sequences for these characters, e.g. '%0a', should not be removed.
+
+If the URL ends in a fragment, the fragment should be removed.  For example, 'http://google.com/#frag' would be shortened to 'http://google.com/'.
+
+Next, repeatedly URL-unescape the URL until it has no more hex-encodings.
 
 To canonicalize the hostname:
 
@@ -808,6 +812,7 @@ Canonicalize("http:// leadingspace.com/") = "http://%20leadingspace.com/";
 Canonicalize("http://%20leadingspace.com/") = "http://%20leadingspace.com/";
 Canonicalize("%20leadingspace.com/") = "http://%20leadingspace.com/";
 Canonicalize("https://www.securesite.com/") = "https://www.securesite.com/";
+Canonicalize("http://host.com/ab%23cd") = "http://host.com/ab%23cd";
 }}}
 
 == 6.2. Simplified Regular Expression Lookup ==
