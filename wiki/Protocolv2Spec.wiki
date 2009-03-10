@@ -1,4 +1,4 @@
-#summary Client specification for the Google Safe Browsing v2.1 protocol
+#summary Client specification for the Google Safe Browsing v2.2 protocol
 #labels Featured,Phase-Implementation
 
 Status: DRAFT as of 2007/11/20. *This specification is not yet for general use. Do not use this protocol without explicit written permission from Google.*
@@ -11,7 +11,7 @@ Notes: The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOU
 
 = 1. Background =
 
-Google provides data for the anti-phishing feature implemented in Firefox 2 and Google Desktop. These clients get their blacklist and whitelist data using an "update protocol".  A new protocol, version 2.1, is designed to address some shortcomings of the previous protocol and is described in this specification.
+Google provides data for the anti-phishing feature implemented in Firefox 2 and Google Desktop. These clients get their blacklist and whitelist data using an "update protocol".  A new protocol, version 2.2, is designed to address some shortcomings of the previous protocol and is described in this specification.
 
 _Note_: This document assumes the reader is familiar with the anti-phishing service. For an overview of the phishing protection in Firefox, see the [http://wiki.mozilla.org/Phishing_Protection:_Design_Documentation design doc on Mozilla.org]. However readers need not be familiar with the details of the version 1 of the protocol to understand the second version.
 
@@ -59,6 +59,8 @@ For example for a given list, there will be:
 For a blacklist, "_add_" chunks contain the new URLs regular expressions or hashes to add to the blacklist and "sub" chunks contains the false positives that need to be removed from the client's blacklist.
 
 In contrast with the previous protocol, the server no longer lists all the URLs that need to be expired. To save bandwidth, the server indicates which chunks need to be deleted by specifying a previously-seen "_add_" chunk number.
+
+*Note:* This spec now references pver 2.2 instead of 2.1.  The change to the protocol was in the handling of empty chunks.  They were illegal in pver 2.1 and used in pver 2.2 to reduce client request size.  This change only affects section 3.5.2.
 
 = 3. Protocol Specification =
 
@@ -115,7 +117,7 @@ Required CGI parameters:
 
     * The *client* parameter indicates the type of client, e.g. "myapplication".
     * The *appver* parameter indicates the version of the client, e.g. "1.5.2".
-    * The *pver* parameter indicates the protocol version that the client supports. Currently this should be "2.1". The format is "major.minor". If we update the protocol, we will make sure that minor revisions are always compatible; however major revision will be incompatible and the server MAY NOT be able to cope with an older protocol.
+    * The *pver* parameter indicates the protocol version that the client supports. Currently this should be "2.2". The format is "major.minor". If we update the protocol, we will make sure that minor revisions are always compatible; however major revision will be incompatible and the server MAY NOT be able to cope with an older protocol.
 
 
 Optional CGI parameters:
@@ -133,7 +135,7 @@ MACKEY    = (ALPHA | DIGIT)+
 
 Example:
 {{{
-http://safebrowsing.clients.google.com/safebrowsing/list?client=myapplication&appver=1.5.2&pver=2.1
+http://safebrowsing.clients.google.com/safebrowsing/list?client=myapplication&appver=1.5.2&pver=2.2
 }}}
 
 Client Behavior:
@@ -199,7 +201,7 @@ MACKEY    = (ALPHA | DIGIT)+
 
 Example:
 {{{
-http://safebrowsing.clients.google.com/safebrowsing/downloads?client=myapplication&appver=1.5.2&pver=2.1
+http://safebrowsing.clients.google.com/safebrowsing/downloads?client=myapplication&appver=1.5.2&pver=2.2
 }}}
 
 Client Behavior:
@@ -348,7 +350,7 @@ ADD-HEAD  = "a:" CHUNKNUM ":" HASHLEN ":" CHUNKLEN LF CHUNKDATA   # Length in by
 SUB-HEAD  = "s:" CHUNKNUM ":" HASHLEN ":" CHUNKLEN LF CHUNKDATA   # Length in bytes in decimal
 CHUNKNUM  = DIGIT+                                   # Sequence number of the chunk
 HASHLEN   = DIGIT+                                   # Decimal length of each hash prefix in bytes
-CHUNKLEN  = DIGIT+                                   # Size of the chunk data in bytes >= 1
+CHUNKLEN  = DIGIT+                                   # Size of the chunk data in bytes >= 0
 CHUNKDATA = <CHUNKLEN number of unsigned bytes>
 }}}
 
@@ -361,6 +363,10 @@ The _adddel_ and _subdel_ chunks are used to expire previous _add_ and _sub_ chu
 If there are no chunks of a given type, the entire LISTDATA will be omitted. That is for example if there are no _sub_ or _subdel_ chunks for a given list, there will be no corresponding "s:" or "sd:" information in the metadata.
 
 Chunk types (_add_, _sub_, _adddel_ and _subdel_) can be presented in any order. They can even be intermixed. The order of the chunks depends on the implementation of the server and the clients MUST NOT rely on any empirical behavior. Moreover, the sequence order in which chunks of the same type are present in the stream is not guaranteed.
+
+Chunks may be empty.  That is, it is prefectly valid for CHUNKLEN to be 0.  In this case the prefix size will still be set, but will have no meaning. Chunks may be given this way to prevent fragmentation of requests and reduce request size.
+
+In the case of an empty add chunk, it's possible that the client has or will receive a sub chunk that contains an expression that points to the empty add.  In this case, the client is allowed to drop the sub expression.
 
 Example:
 {{{
@@ -381,8 +387,7 @@ s:3:96:100
 [encoded data]
 a:6:32:800
 [encoded data]
-a:7:48:1200
-[encoded data]
+a:7:32:0
 s:4:16:40
 [encoded data]
 }}}
@@ -554,7 +559,7 @@ MACKEY    = (ALPHA | DIGIT)+
 
 Example:
 {{{
-http://safebrowsing.clients.google.com/safebrowsing/gethash?client=myapplication&appver=1.5.2&pver=2.1
+http://safebrowsing.clients.google.com/safebrowsing/gethash?client=myapplication&appver=1.5.2&pver=2.2
 }}}
 
 Client Behavior:
@@ -640,7 +645,7 @@ CGI parameters are the same as those used in the HTTP Request for List (section 
 
 Example:
 {{{
-https://sb-ssl.google.com/safebrowsing/newkey?client=myapplication&appver=1.5.2&pver=2.1
+https://sb-ssl.google.com/safebrowsing/newkey?client=myapplication&appver=1.5.2&pver=2.2
 }}}
 
 == 4.2. HTTP Response for Key ==
@@ -677,7 +682,7 @@ wrappedkey:24:MTqdJvrixHRGAyfebvaQWYda
 
 The client must include the wrapped key in the request if it wants a MAC. For example, the request will look like this:
 {{{
-http://safebrowsing.clients.google.com/safebrowsing/downloads?client=foo&appver=1.5&pver=2.1&wrkey=123
+http://safebrowsing.clients.google.com/safebrowsing/downloads?client=foo&appver=1.5&pver=2.2&wrkey=123
 }}}
 
 The entire response will be protected by a MAC if the *wrkey* parameter is set.  The client can also request a MAC for any individual list by adding the mac keyword after any desired list:
