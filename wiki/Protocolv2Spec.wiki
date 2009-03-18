@@ -223,8 +223,8 @@ Formal R-BNF description of the request body:
 {{{
 BODY      = [SIZE LF] (LIST LF)+ EOF
 SIZE      = "s;" DIGIT+                            # Optional size, in kilobytes and >= 1
-LIST      = LISTNAME ";" [LISTINFO [":" LISTINFO]*]
-LISTINFO  = (CHUNKTYPE ":" CHUNKLIST) | "mac"
+LIST      = LISTNAME ";" ["mac"] | (LISTINFO [":" LISTINFO]* [":mac"])
+LISTINFO  = CHUNKTYPE ":" CHUNKLIST
 LISTNAME  = (LOALPHA | DIGIT)+ "-" LOALPHA+ "-" (LOALPHA | DIGIT)+
 CHUNKTYPE = "a" | "s"                              # 'Add' or 'Sub' chunks
 CHUNKLIST = (RANGE | NUMBER) ["," CHUNKLIST]
