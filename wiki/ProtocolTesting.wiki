@@ -2,7 +2,7 @@
 
 _status_: *Draft*
 
-We are in the process of designing a test suite which will allow clients to test their implementation of our this protocol.  Clients will make a request to the test server in the same way they would make a normal update request. After downloading and parsing the response, they will make a new request("/safebrowsing/verify_urls") which will give a list of urls and a bit specifying if they url should or shouldn't be in the current list. After verifying that their data is correct, the client will make another download request and repeat until no more data can be downloaded. Pseudo code for such a test is shown below.
+We are in the process of designing a test suite which will allow clients to test their implementation of our this protocol.  Clients will make a request to the test server in the same way they would make a normal update request. After downloading and parsing the response, they will make a new request("/safebrowsing/verify_urls") which will give a list of urls and a bit specifying if they url should or shouldn't be in the current list. After verifying that their data is correct (including making hashserver requests for the necessary matching prefixes), the client will make another download request and repeat until no more data can be downloaded. Pseudo code for such a test is shown below.
 
 {{{
 int step = 1;
