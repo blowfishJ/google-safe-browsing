@@ -2,7 +2,7 @@
 
 _status_: *Draft*
 
-We are in the process of designing a test suite which will allow clients to test their implementation of our this protocol.  Clients will make a request to the test server in the same way they would make a normal update request. After downloading and parsing the response, they will make another request which will give a list of urls and a bit specifying if they url should or shouldn't be in the current list. After verifying that their data is correct, the client will make another download request and repeat until no more data can be downloaded. Pseudo code for such a test is shown below.
+We are in the process of designing a test suite which will allow clients to test their implementation of our this protocol.  Clients will make a request to the test server in the same way they would make a normal update request. After downloading and parsing the response, they will make a new request("/safebrowsing/verify_urls") which will give a list of urls and a bit specifying if they url should or shouldn't be in the current list. After verifying that their data is correct, the client will make another download request and repeat until no more data can be downloaded. Pseudo code for such a test is shown below.
 
 {{{
 int step = 1;
@@ -15,12 +15,15 @@ while (RequestReceivesData(MakeTestRequest(step, &response))) {
 }}}
 
 Implementing such a routine will likely require the following changes to client code.
-   * Request will have to have a "step" cgi parameter appended to them.  This includes downloads requests, gethash requests, and the new getcurrentdata requests.  They will probably need to be given for the redirects from the downloads requests as well, but this hasn't been determined yet.
+   * Request will have to have a "step" cgi parameter appended to them.  This includes downloads requests, gethash requests, and the new verification requests.  They will probably need to be given for the redirects from the downloads requests as well, but this hasn't been determined yet.
    * Clients will need to change the host and possibly the path of the urls they are requesting for these tests.
-   * Clients will need to parse a new request response (getcurrentdata).  The response should be very simple (approximately "url\t[y|n]\n").
+   * Clients will need to parse a new request type (verification).  The form of the response can be seen below.
 
-As a bonus, it would be nice if clients would send a special request once they are finished with the test, indicating success or failure.  This would most likely be through a special path("safebrowsing/test/reportstatus").
+{{{
+RESPONSE         = [URL_VERIFICATION LF]+
+URL_VERIFICATION = URL TAB LISTNAME TAB ("yes" | "no") 
+LISTNAME         = (LOALPHA | DIGIT)+ "-" LOALPHA+ "-" (LOALPHA | DIGIT)+
+}}}
 
 ===Known Issues===
-   * This test setup assumes that clients will have internet connectivity when they run their tests.  Hopefully this isn't a particularly arduous requirement.
-   * For technical reasons, it seems likely that they lists that clients will use to test will be the same as the ones used in production (i.e. goog-phish-shavar, goog-malware-shavar, etc.).  It would be better if this test used separate list names to decrease the chance that running the test would affect normal function of the protocol.
+   * For technical reasons, it seems likely that they lists that clients will use to test will be the same as the ones used in production (i.e. goog-phish-shavar, goog-malware-shavar, etc.).  It would be better if this test used separate list names to decrease the chance that running the test would affect normal function of the protocol. In the meantime clients need to make sure that the state from the test doesn't interfere with whatever state the client may have had beforehand.
