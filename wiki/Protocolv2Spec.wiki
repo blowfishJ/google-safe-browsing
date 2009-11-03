@@ -781,6 +781,8 @@ To canonicalize the path:
     * Runs of consecutive slashes should be replaced with a single slash character.
 
 
+These path canonicalizations should not be applied to the query parameters.
+
 After performing these steps, percent-escape all characters in the URL which are <= ASCII 32, >= 127, "#", or "%". The escapes should use uppercase hex characters.
 
 Below is a set of tests that will help validate a canonicalization implementation.
@@ -818,6 +820,7 @@ Canonicalize("http://%20leadingspace.com/") = "http://%20leadingspace.com/";
 Canonicalize("%20leadingspace.com/") = "http://%20leadingspace.com/";
 Canonicalize("https://www.securesite.com/") = "https://www.securesite.com/";
 Canonicalize("http://host.com/ab%23cd") = "http://host.com/ab%23cd";
+Canonicalize("http://host.com//twoslashes?more//slashes") = "http://host.com/twoslashes?more//slashes";
 }}}
 
 == 6.2. Simplified Regular Expression Lookup ==
