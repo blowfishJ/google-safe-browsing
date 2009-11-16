@@ -22,7 +22,7 @@ Because it would be both inefficient and privacy-invasive to send every URL that
 
 To reduce the size of the downloaded data, the client does not actually receive the full suffix/prefix expressions when they do an update.  Instead, they normally receive a 4-byte hash prefix of the expression.  This is formed by applying a hash function to the expression to generate a 32-byte hash, then simply truncating the result to the first 4 bytes.
 
-When the client wants to check whether a URL is in the blacklist, it first computes all of the suffix/prefix expressions that could potentially apply to the URL.  For example, if the client is loading "http://www.host.com/service/login.html", the expressions "host.com/" and "host.com/service/" would both be applicable.  The client computes the hash prefix for each of the expressions, and checks them against the data it has downloaded.
+When the client wants to check whether a URL is in the blacklist, it first computes all of the suffix/prefix expressions that could potentially apply to the URL.  For example, if the client is loading "`http://www.host.com/service/login.html`", the expressions "host.com/" and "host.com/service/" would both be applicable.  The client computes the hash prefix for each of the expressions, and checks them against the data it has downloaded.
 
 Because the hash prefixes described above may have collisions, a match against a hash prefix is not sufficient to block the URL.  If there is a match, the client must contact the !SafeBrowsing service to get the full 32-byte hash corresponding to the prefix.  If this is a match, then the client should warn the user.  This process is described in more detail under Looking up a URL.
 
@@ -59,7 +59,7 @@ Figure 1 Overview of the Update Process.
 
 Before loading a URL or displaying it to the user, the client will look it up in the local !SafeBrowsing database.  As described under "Protocol Design", the first step in this process is to compute all of the suffix/prefix expressions that may apply to a URL.  To do this, the client will successively remove host components from the url until it reaches a TLD, and successively remove path components until it reaches the root (/).  If the url contains any query parameters, those are also stripped off as path components are removed.
 
-To illustrate this, if the client wants to check the URL "http://www.somehost.com/path/page.html?args", it will need to check all of the following expressions:
+To illustrate this, if the client wants to check the URL "`http://www.somehost.com/path/page.html?args`", it will need to check all of the following expressions:
 
 {{{
 www.somehost.com/path/page.html?args
