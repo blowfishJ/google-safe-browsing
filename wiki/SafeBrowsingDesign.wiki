@@ -40,12 +40,16 @@ The chunk format is described more fully in [Protocolv2Spec#3.6._List_Contents].
 
 When the client wants to update its local !SafeBrowsing data, it contacts the !SafeBrowsing server via HTTP and sends a list of all the chunks that it currently has.  An example request might contain the following chunks:
 
+{{{
 goog-malware-shavar:a:20-48,50
 goog-malware-shavar:s:10-12
+}}}
 
 This would indicate that the client has all of the goog-malware-shavar add chunks between 20 and 48, inclusive, and chunk 50 (it does not have chunk 49).  It also has sub chunks 10 through 12 for that list.  If the client would like data for a list, but does not have any chunks for it yet, then just the list name is included in the request:
 
+{{{
 googpub-phish-shavar:
+}}}
 
 The response to the update request does not actually contain new chunk data for the client.  Instead, it contains a series of _redirect URLs_ for the client to download, which contain new add and sub chunks.  This design ensures that the chunk data may be cached by proxy servers, which is not true for the update response.  The client fetches each redirect URL given by the update response, and stores the results in its local database.  In addition, the update response may instruct the client to delete chunks that it has already downloaded, if those chunks are no longer relevant.
 
