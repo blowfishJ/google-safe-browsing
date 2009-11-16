@@ -53,6 +53,8 @@ The update response and the redirect URL data are also signed by the server, usi
 
 Figure 1 summarizes the update request process.  For a full description of this process, see [Protocolv2Spec#3.4._HTTP_Request_for_Data] and [Protocolv2Spec#3.5._HTTP_Response_for_Data].
 
+[http://google-safe-browsing.googlecode.com/svn/wiki/update_process_diagram.png]
+
 Figure 1 Overview of the Update Process.
 
 ==Looking up a URL==
@@ -81,6 +83,8 @@ Like update responses, full hash responses are signed by the server using a prev
 For the vast majority of URLs, there will be no hash prefix matches in the client's blacklist, so there will be no need to send a full hash request to the server.  As a result, the privacy impact of these requests is minimal.
 
 Figure 2 summarizes the lookup process.  A full description of the full-length hash request is in [Protocolv2Spec#3.7._HTTP_Request_for_Full-Length_Hashes] and [Protocolv2Spec#3.8._HTTP_Response_for_Full-Length_Hashes], and a description of the lookup semantics is in [Protocolv2Spec#6._Performing_Lookups].
+
+[http://google-safe-browsing.googlecode.com/svn/wiki/lookup_diagram.png]
 
 Figure 2 Overview of Looking up a URL in the Blacklist
 
