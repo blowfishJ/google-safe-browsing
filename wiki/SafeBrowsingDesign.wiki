@@ -1,4 +1,4 @@
-#summary High-level Design for the SafeBrowsing service.
+#summary High-level design for the SafeBrowsing service.
 
 =!SafeBrowsing Design=
 
