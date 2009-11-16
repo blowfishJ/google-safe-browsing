@@ -62,7 +62,7 @@ The update response and the redirect URL data are also signed by the server, usi
 
 ==Looking up a URL==
 
-Before loading a URL or displaying it to the user, the client will look it up in the local !SafeBrowsing database.  As described under "Protocol Design", the first step in this process is to compute all of the suffix/prefix expressions that may apply to a URL.  To do this, the client will successively remove host components from the url until it reaches a TLD, and successively remove path components until it reaches the root (/).  If the url contains any query parameters, those are also stripped off as path components are removed.
+Before loading a URL or displaying it to the user, the client will look it up in the local !SafeBrowsing database.  As described under "Protocol Design", the first step in this process is to compute all of the suffix/prefix expressions that may apply to a URL.  To do this, the client will successively remove host components from the URL until it reaches a TLD, and successively remove path components until it reaches the root (/).  If the URL contains any query parameters, those are also stripped off as path components are removed.
 
 To illustrate this, if the client wants to check the URL "`http://www.somehost.com/path/page.html?args`", it will need to check all of the following expressions:
 
