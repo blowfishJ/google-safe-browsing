@@ -54,7 +54,7 @@ The update response and the redirect URL data are also signed by the server, usi
 Figure 1 summarizes the update request process.  For a full description of this process, see [Protocolv2Spec#3.4._HTTP_Request_for_Data] and [Protocolv2Spec#3.5._HTTP_Response_for_Data].
 
 <p align="center">[http://google-safe-browsing.googlecode.com/svn/wiki/update_process_diagram.png]</p>
-<p align="center">Figure 2 Overview of Looking up a URL in the Blacklist</p>
+<p align="center">Figure 1 Overview of the Update Process</p>
 
 ==Looking up a URL==
 
