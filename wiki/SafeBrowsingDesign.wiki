@@ -53,7 +53,8 @@ The update response and the redirect URL data are also signed by the server, usi
 
 Figure 1 summarizes the update request process.  For a full description of this process, see [Protocolv2Spec#3.4._HTTP_Request_for_Data] and [Protocolv2Spec#3.5._HTTP_Response_for_Data].
 
-<p align="center">[http://google-safe-browsing.googlecode.com/svn/wiki/update_process_diagram.png]<br>Figure 2 Overview of Looking up a URL in the Blacklist</p>
+<p align="center">[http://google-safe-browsing.googlecode.com/svn/wiki/update_process_diagram.png]</p>
+<p align="center">Figure 2 Overview of Looking up a URL in the Blacklist</p>
 
 ==Looking up a URL==
 
@@ -82,7 +83,8 @@ For the vast majority of URLs, there will be no hash prefix matches in the clien
 
 Figure 2 summarizes the lookup process.  A full description of the full-length hash request is in [Protocolv2Spec#3.7._HTTP_Request_for_Full-Length_Hashes] and [Protocolv2Spec#3.8._HTTP_Response_for_Full-Length_Hashes], and a description of the lookup semantics is in [Protocolv2Spec#6._Performing_Lookups].
 
-<p align="center">[http://google-safe-browsing.googlecode.com/svn/wiki/lookup_diagram.png]<br>Figure 2 Overview of Looking up a URL in the Blacklist</p>
+<p align="center">[http://google-safe-browsing.googlecode.com/svn/wiki/lookup_diagram.png]</p>
+<p algin="center">Figure 2 Overview of Looking up a URL in the Blacklist</p>
 
 ==Further Reading==
 
