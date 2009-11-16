@@ -49,7 +49,7 @@ googpub-phish-shavar:
 
 The response to the update request does not actually contain new chunk data for the client.  Instead, it contains a series of redirect URLs for the client to download, which contain new add and sub chunks.  This design ensures that the chunk data may be cached by proxy servers, which is not true for the update response.  The client fetches each redirect URL given by the update response, and stores the results in its local database.  In addition, the update response may instruct the client to delete chunks that it has already downloaded, if those chunks are no longer relevant.
 
-The update response and the redirect URL data are also signed by the server, using a key that the client has previously obtained.  This allows the client to authenticate the source of the data, and detect whether it has been tampered with. [link to spec section 4]
+The update response and the redirect URL data are also signed by the server, using a key that the client has previously obtained.  This allows the client to authenticate the source of the data, and detect whether it has been tampered with, as described in [Protocolv2Spec#4._MAC].
 
 Figure 1 summarizes the update request process.  For a full description of this process, see [Protocolv2Spec#3.4._HTTP_Request_for_Data] and [Protocolv2Spec#3.5._HTTP_Response_for_Data].
 
