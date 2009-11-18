@@ -6,6 +6,9 @@ We are in the process of designing a test suite which will allow clients to test
 
 {{{
 int step = 1;
+GetKey(step);
+DownloadLists(step);
+
 ServerResponse response;
 while (RequestReceivesData(MakeTestRequest(step, &response))) {
   FetchAndApplyRedirects(response, step);
