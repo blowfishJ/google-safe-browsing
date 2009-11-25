@@ -2,7 +2,7 @@
 
 _status_: *Draft*
 
-We are in the process of designing a test suite which will allow clients to test their implementation of our this protocol.  Clients will make a request to the test server in the same way they would make a normal update request. After downloading and parsing the response, they will make a new request("/safebrowsing/verify_urls") which will give a list of urls and a bit specifying if they url should or shouldn't be in the current list. After verifying that their data is correct (including making hashserver requests for the necessary matching prefixes), the client will make another download request and repeat until no more data can be downloaded. Pseudo code for such a test is shown below.
+We are in the process of designing a test suite which will allow clients to test their implementation of our this protocol.  Clients will make a request to the test server in the same way they would make a normal update request. After downloading and parsing the response, they will make a new request("/safebrowsing/verify_urls") which will give a list of urls and a bit specifying if they url should or shouldn't be in the current list. After verifying that their data is correct (including making hashserver requests for the necessary matching prefixes), the client will make another download request and repeat until no more data can be downloaded. Once the client believes the test is complete, it should make a request to "/test_complete" to verify that the server agrees. The response should be either "yes" or "no". Unlike other requests, the test complete request will not take any CGI parameters. Pseudo code for such a test is shown below.
 
 {{{
 int step = 1;
@@ -12,9 +12,16 @@ DownloadLists(step);
 ServerResponse response;
 while (RequestReceivesData(MakeTestRequest(step, &response))) {
   FetchAndApplyRedirects(response, step);
-  VerifyCurrentData(step);
+  if (!VerifyCurrentData(step)) {
+    FailTest();
+  }
   step++;
 }
+
+if (!VerifyTestComplete()) {
+  FailTest();
+}
+PassTest();
 }}}
 
 Implementing such a routine will likely require the following changes to client code.
