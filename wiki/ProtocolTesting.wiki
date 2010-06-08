@@ -4,7 +4,9 @@ _status_: *Draft*
 
 We have designed a test suite which will allow clients to test their implementation of this protocol.  Clients will make a request to the test server in the same way they would make a normal update request with one addition. All requests (other than those specifically mentioned below) will contain a "test_step=" CGI parameter. This parameter will start at "1" and increment by one after every verification step (explained in more detail below).  This parameter helps verify that the client is making requests in the correct order.  
 
-In addition to the usual download and redirect requests, clients using the test framework will also make special testing requests to verify that they have correctly parsed the data that they have received.  The first request is "/safebrowsing/verify_urls" and the response is a list of urls along with a listname and a bit specifiying if the url should be in the associated list. The second request is "/safebrowsing/verify_database" and the response will be a list of all the hashes that the clients database should contain. This request also has a CGI parameter that must be set "chunk_type", After verifying that their data is correct (including making hashserver requests for the necessary matching prefixes), the client will make another download request and repeat until no more data can be downloaded. Once the client believes the test is complete, it should make a request to "/test_complete" to verify that the server agrees. The response should be either "yes" or "no". Unlike other requests, the test complete request will not take any CGI parameters. Pseudo code for such a test is shown below.
+In addition to the usual download and redirect requests, clients using the test framework will also make special testing requests to verify that they have correctly parsed the data that they have received.  The first request is "/safebrowsing/verify_urls" and the response is a list of urls along with a listname and a bit specifiying if the url should be in the associated list. The second request is "/safebrowsing/verify_database" and the response will be a list of all the hashes that the clients database should contain. This request also has a CGI parameter "chunk_type" that must be set to either "add" or "sub" to determine the data that the server will respond with.  These requests serve slightly different testing purposes.  The first is to verify that the whole system works properly (canonicalization, hashing, hashserver requests, etc.) but only on a small subset of the data, while the second request will verify that all data is being handled correctly.
+
+After verifying the data the client will make another download request and repeat until no more data can be downloaded. Once the client believes the test is complete, it should make a request to "/test_complete" to verify that the server agrees. The response should be either "yes" or "no". Unlike other requests, the test complete request will not take any CGI parameters. Pseudo code for such a test is shown below.
 
 {{{
 int step = 1;
@@ -29,12 +31,22 @@ PassTest();
 Implementing such a routine will likely require the following changes to client code.
    * Request will have to have a "step" cgi parameter appended to them.  This includes downloads requests, gethash requests, and the new verification requests.  They will probably need to be given for the redirects from the downloads requests as well, but this hasn't been determined yet.
    * Clients will need to change the host and possibly the path of the urls they are requesting for these tests.
-   * Clients will need to parse a new request type (verification).  The form of the response can be seen below.
+   * Clients will need to send and parse the response of new requests types, noted below.
 
+*URL Verification*: Request is made to "safebrowsing/verify_urls" with the usual CGI parameters. Response will contain urls with associated listnames and an indication if the url should be in the list. Test should pass iff each url is in the correct state.
 {{{
 RESPONSE         = [URL_VERIFICATION LF]+
 URL_VERIFICATION = URL TAB LISTNAME TAB ("yes" | "no") 
 LISTNAME         = (LOALPHA | DIGIT)+ "-" LOALPHA+ "-" (LOALPHA | DIGIT)+
+}}}
+
+*Database Verification*: 
+{{{
+RESPONSE              = [DATABASE_VERIFICATION LF]+
+DATABASE_VERIFICATION = LISTNAME ":" TYPE ":" CHUNKNUM ":" PREFIXLEN ":" NUMENTRIES (VERIFICAITONENTRIES)*
+LISTNAME              = (LOALPHA | DIGIT)+ "-" LOALPHA+ "-" (LOALPHA | DIGIT)+
+TYPE                  = "add" | "sub"
+VERIFICATIONENTRIES   = ("y" | "n") HASH
 }}}
 
 ===Known Issues===
